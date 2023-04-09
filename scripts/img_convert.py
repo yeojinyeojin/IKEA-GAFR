@@ -22,7 +22,7 @@ if __name__ == '__main__':
     ind_hashmap = {}
     running_ctr = 0
 
-    for pdf_path in pdf_paths[:3]:
+    for pdf_path in pdf_paths:
         *_, class_name, model_name = str(pdf_path.parent).rsplit('/')
         images = convert_from_path(pdf_path)
 
