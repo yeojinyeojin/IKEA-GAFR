@@ -1,7 +1,7 @@
 Poppler installation steps: [github](https://github.com/Belval/pdf2image)
 
 Dataset folder structure:
-
+```
 <root_dir>
 |-- dataset
 |-- ikea_man
@@ -13,4 +13,5 @@ Dataset folder structure:
 |
 |-- scripts
 |__ README.md
+```
 
