@@ -33,7 +33,7 @@ if __name__ == '__main__':
             ind_hashmap[img_name] = {
                 "class_name": class_name,
                 "model_name": model_name,
-                "pdf_path": str(pdf_path),
+                "pdf_path": str(pdf_path)[3:],
                 "img_h": h,
                 "img_w": w,
             }
