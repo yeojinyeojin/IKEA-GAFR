@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
         for img in images:
             w, h = img.size
-            img_name = f"{running_ctr:04d}.png"
+            img_name = f"{running_ctr:05d}.png"
             img.save(f"../dataset/images/{img_name}")
             ind_hashmap[img_name] = {
                 "class_name": class_name,
