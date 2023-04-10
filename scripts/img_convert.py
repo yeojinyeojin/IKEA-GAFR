@@ -26,7 +26,7 @@ if __name__ == '__main__':
         *_, class_name, model_name = str(pdf_path.parent).rsplit('/')
         images = convert_from_path(pdf_path)
 
-        for img in images:
+        for i, img in enumerate(images):
             w, h = img.size
             img_name = f"{running_ctr:05d}.png"
             img.save(f"../dataset/images/{img_name}")
@@ -36,6 +36,7 @@ if __name__ == '__main__':
                 "pdf_path": str(pdf_path)[3:],
                 "img_h": h,
                 "img_w": w,
+                "pdf_page_id": i,
             }
             running_ctr += 1
 
