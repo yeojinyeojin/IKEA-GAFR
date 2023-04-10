@@ -24,10 +24,10 @@ class Pix2Voxel(nn.Module):
         
         self.device = args.device
         
-        if not args.load_feat: #pretrained ResNet18 features of images
-            vision_model = torchvision_models.__dict__[args.encoder_arch](pretrained=True)
-            self.encoder = torch.nn.Sequential(*(list(vision_model.children())[:-1]))
-            self.normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
+        #pretrained ResNet18 features of images
+        vision_model = torchvision_models.__dict__[args.encoder_arch](pretrained=True)
+        self.encoder = torch.nn.Sequential(*(list(vision_model.children())[:-1]))
+        self.normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
             
         self.decoder = torch.nn.Sequential(
             torch.nn.ConvTranspose3d(64, 32, kernel_size=4, stride=2, padding=1),
@@ -48,12 +48,9 @@ class Pix2Voxel(nn.Module):
         )
     
     def forward(self, images, args):
-        if not args.load_feat:
-            images_normalize = self.normalize(images)
-            # images_normalize = self.normalize(images.permute(0,3,1,2))
-            encoded_feat = self.encoder(images_normalize).squeeze(-1).squeeze(-1) # b x 512
-        else:
-            encoded_feat = images # in case of args.load_feat input images are pretrained resnet18 features of b x 512 size
+        images_normalize = self.normalize(images)
+        # images_normalize = self.normalize(images.permute(0,3,1,2))
+        encoded_feat = self.encoder(images_normalize).squeeze(-1).squeeze(-1) # b x 512
         
         inp = encoded_feat.view(-1, 64, 2, 2, 2)
         voxels_pred = self.decoder(inp)

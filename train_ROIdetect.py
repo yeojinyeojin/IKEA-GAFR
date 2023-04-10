@@ -14,7 +14,7 @@ from torchvision import transforms
 from torchvision import models as torchvision_models
 
 from train_utils import create_dir, ComputeLoss
-from data_loader import IKEAManual
+from data_loader import IKEAManualPDF
 
 
 def create_args():
@@ -39,7 +39,6 @@ def create_args():
     parser.add_argument('--device', default='cuda', type=str) 
     
     # Directories & Checkpoint
-    parser.add_argument('--load_feat', action='store_true') 
     parser.add_argument('--load_checkpoint', default=None, type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints/RoI_detect')
     parser.add_argument('--logs_dir', type=str, default='./logs/RoI_detect')
@@ -77,7 +76,7 @@ def main(args):
         transforms.ToTensor()
         
     ]) #TODO: normalize?
-    dataset = IKEAManual(args.data_dir, args.load_feat, transform)
+    dataset = IKEAManualPDF(args.data_dir, args.load_feat, transform)
     train_set, val_set = torch.utils.data.random_split(dataset, [args.train_test_split_ratio, 1-args.train_test_split_ratio])
     train_dataloader = DataLoader(dataset=train_set, 
                               batch_size=args.batch_size, 

@@ -18,7 +18,7 @@ import pytorch3d
 
 from model import Pix2Voxel
 from train_utils import create_dir
-from data_loader import IKEAManual
+from data_loader import IKEAManualStep
 
 def parse_args():
     
@@ -44,7 +44,6 @@ def parse_args():
     parser.add_argument('--device', default='cuda', type=str) 
     
     # Directories & Checkpoint
-    parser.add_argument('--load_feat', action='store_true') 
     parser.add_argument('--load_checkpoint', default=None, type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
@@ -58,11 +57,7 @@ def preprocess(feed_dict, args):
     voxels = feed_dict['voxels'].float()
     ground_truth_3d = voxels
     
-    if args.load_feat:
-        feats = torch.stack(feed_dict['feats'])
-        return feats.to(args.device), ground_truth_3d.to(args.device)
-    else:
-        return images.to(args.device), ground_truth_3d.to(args.device)
+    return images.to(args.device), ground_truth_3d.to(args.device)
 
 def calculate_loss(voxel_src, voxel_tgt):
     voxel_src = torch.clip(voxel_src, min=0, max=1)
@@ -104,7 +99,7 @@ def main(args):
         transforms.ToTensor()
         
     ]) #TODO: normalize?
-    dataset = IKEAManual(args.data_dir, args.load_feat, transform)
+    dataset = IKEAManualStep(args.data_dir, transform)
     train_set, val_set = torch.utils.data.random_split(dataset, [args.train_test_split_ratio, 1-args.train_test_split_ratio])
     train_dataloader = DataLoader(dataset=train_set, 
                               batch_size=args.batch_size, 
