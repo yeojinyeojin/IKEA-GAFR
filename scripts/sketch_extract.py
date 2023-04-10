@@ -2,18 +2,31 @@ import os
 import json
 import shutil
 
-def create_if_empty(path):
-    if not os.path.exists(path):
-        os.mkdir(path)
+
+def delete_and_create(path):
+    if os.path.exists(path):
+        raise ValueError(f'Delete folder {path}')
+    os.mkdir(path)
     return True
 
 def find_img_name(ind_hashmap, class_name, model_name, page_id):
     # refactor later
+    found = False
     for k, v in ind_hashmap.items():
         if v['class_name'] == class_name \
                 and v['model_name'] == model_name \
                 and v['pdf_page_id'] + 1 == page_id:
+            found = True
             return k
+    if found is False:
+        ## due to 1.pdf issue
+        for k, v in ind_hashmap.items():
+            if v['class_name'] == class_name \
+                    and v['model_name'] == model_name \
+                    and v['model_page_id'] + 1 == page_id + 2:
+                print(f'using modified images for {class_name, model_name, page_id}')
+                return k
+
     raise ValueError(f'missing class and model info for {class_name, model_name, page_id}')
 
 
@@ -24,7 +37,7 @@ if __name__ == '__main__':
     with open("../dataset/ind_map.json", 'r') as f:
         ind_hashmap = json.load(f)
 
-    create_if_empty("../dataset/images_masks")
+    delete_and_create("../dataset/images_masks")
     plain_sketch_hashmap = {}
 
     for model_dict in main_json:
