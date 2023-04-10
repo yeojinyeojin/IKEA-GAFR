@@ -6,4 +6,5 @@ __pycache__
 ## Data
 dataset/ikea_man
 dataset/images
+dataset/images_masks
 cad_models/
