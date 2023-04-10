@@ -1,0 +1,2360 @@
+{
+      "00003_step_0.png": {
+            "class_name": "Bench",
+            "model_name": "applaro",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00003_step_1.png": {
+            "class_name": "Bench",
+            "model_name": "applaro",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00012_step_0.png": {
+            "class_name": "Bench",
+            "model_name": "applaro_2",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00014_step_1.png": {
+            "class_name": "Bench",
+            "model_name": "applaro_2",
+            "page_id": 6,
+            "local_step_id": 1
+      },
+      "00018_step_2.png": {
+            "class_name": "Bench",
+            "model_name": "applaro_2",
+            "page_id": 10,
+            "local_step_id": 2
+      },
+      "00022_step_0.png": {
+            "class_name": "Bench",
+            "model_name": "applaro_3",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00023_step_1.png": {
+            "class_name": "Bench",
+            "model_name": "applaro_3",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00024_step_2.png": {
+            "class_name": "Bench",
+            "model_name": "applaro_3",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00027_step_3.png": {
+            "class_name": "Bench",
+            "model_name": "applaro_3",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00031_step_0.png": {
+            "class_name": "Bench",
+            "model_name": "hemnes",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00032_step_1.png": {
+            "class_name": "Bench",
+            "model_name": "hemnes",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00033_step_2.png": {
+            "class_name": "Bench",
+            "model_name": "hemnes",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00034_step_3.png": {
+            "class_name": "Bench",
+            "model_name": "hemnes",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00035_step_4.png": {
+            "class_name": "Bench",
+            "model_name": "hemnes",
+            "page_id": 7,
+            "local_step_id": 4
+      },
+      "00038_step_0.png": {
+            "class_name": "Bench",
+            "model_name": "hemnes_2",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00039_step_1.png": {
+            "class_name": "Bench",
+            "model_name": "hemnes_2",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00041_step_2.png": {
+            "class_name": "Bench",
+            "model_name": "hemnes_2",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00042_step_3.png": {
+            "class_name": "Bench",
+            "model_name": "hemnes_2",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00048_step_0.png": {
+            "class_name": "Bench",
+            "model_name": "silveran",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00048_step_1.png": {
+            "class_name": "Bench",
+            "model_name": "silveran",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00049_step_2.png": {
+            "class_name": "Bench",
+            "model_name": "silveran",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00049_step_3.png": {
+            "class_name": "Bench",
+            "model_name": "silveran",
+            "page_id": 5,
+            "local_step_id": 3
+      },
+      "00050_step_4.png": {
+            "class_name": "Bench",
+            "model_name": "silveran",
+            "page_id": 6,
+            "local_step_id": 4
+      },
+      "00052_step_5.png": {
+            "class_name": "Bench",
+            "model_name": "silveran",
+            "page_id": 8,
+            "local_step_id": 5
+      },
+      "00054_step_6.png": {
+            "class_name": "Bench",
+            "model_name": "silveran",
+            "page_id": 10,
+            "local_step_id": 6
+      },
+      "00059_step_0.png": {
+            "class_name": "Bench",
+            "model_name": "sjalland",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00062_step_1.png": {
+            "class_name": "Bench",
+            "model_name": "sjalland",
+            "page_id": 6,
+            "local_step_id": 1
+      },
+      "00067_step_0.png": {
+            "class_name": "Bench",
+            "model_name": "tjusig",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00068_step_1.png": {
+            "class_name": "Bench",
+            "model_name": "tjusig",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00069_step_2.png": {
+            "class_name": "Bench",
+            "model_name": "tjusig",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00069_step_3.png": {
+            "class_name": "Bench",
+            "model_name": "tjusig",
+            "page_id": 5,
+            "local_step_id": 3
+      },
+      "00072_step_4.png": {
+            "class_name": "Bench",
+            "model_name": "tjusig",
+            "page_id": 8,
+            "local_step_id": 4
+      },
+      "00074_step_5.png": {
+            "class_name": "Bench",
+            "model_name": "tjusig",
+            "page_id": 10,
+            "local_step_id": 5
+      },
+      "00078_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "agam",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00080_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "agam",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00080_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "agam",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00081_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "agam",
+            "page_id": 5,
+            "local_step_id": 3
+      },
+      "00081_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "agam",
+            "page_id": 5,
+            "local_step_id": 4
+      },
+      "00082_step_5.png": {
+            "class_name": "Chair",
+            "model_name": "agam",
+            "page_id": 6,
+            "local_step_id": 5
+      },
+      "00086_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "applaro",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00088_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "applaro",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00091_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "applaro",
+            "page_id": 7,
+            "local_step_id": 2
+      },
+      "00095_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "applaro_2",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00096_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "applaro_2",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00097_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "applaro_2",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00104_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "applaro_3",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00105_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "applaro_3",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00110_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "bekvam_3017",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00111_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "bekvam_3017",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00112_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "bekvam_3017",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00112_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "bekvam_3017",
+            "page_id": 4,
+            "local_step_id": 3
+      },
+      "00113_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "bekvam_3017",
+            "page_id": 5,
+            "local_step_id": 4
+      },
+      "00118_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "bernhard",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00123_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "borje",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00125_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "borje",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00126_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "borje",
+            "page_id": 6,
+            "local_step_id": 2
+      },
+      "00131_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "dalfred",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00131_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "dalfred",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00132_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "dalfred",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00133_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "dalfred",
+            "page_id": 5,
+            "local_step_id": 3
+      },
+      "00133_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "dalfred",
+            "page_id": 5,
+            "local_step_id": 4
+      },
+      "00134_step_5.png": {
+            "class_name": "Chair",
+            "model_name": "dalfred",
+            "page_id": 6,
+            "local_step_id": 5
+      },
+      "00135_step_6.png": {
+            "class_name": "Chair",
+            "model_name": "dalfred",
+            "page_id": 7,
+            "local_step_id": 6
+      },
+      "00138_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "ekenas",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00142_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "falholmen",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00142_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "falholmen",
+            "page_id": 2,
+            "local_step_id": 1
+      },
+      "00144_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "falholmen",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00147_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "falholmen",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00148_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "falholmen",
+            "page_id": 8,
+            "local_step_id": 4
+      },
+      "00156_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "fanbyn",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00157_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "fanbyn",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00158_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "fanbyn",
+            "page_id": 6,
+            "local_step_id": 2
+      },
+      "00159_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "fanbyn",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00164_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "fanbyn",
+            "page_id": 10,
+            "local_step_id": 4
+      },
+      "00169_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "froset",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00170_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "froset",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00171_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "froset",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00172_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "froset",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00174_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "froset",
+            "page_id": 8,
+            "local_step_id": 4
+      },
+      "00182_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "glenn",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00183_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "glenn",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00185_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "glenn",
+            "page_id": 7,
+            "local_step_id": 2
+      },
+      "00192_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "grubban",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00193_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "grubban",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00194_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "grubban",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00195_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "grubban",
+            "page_id": 5,
+            "local_step_id": 3
+      },
+      "00200_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "herman",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00201_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "herman",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00203_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "herman",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00206_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "herman",
+            "page_id": 8,
+            "local_step_id": 3
+      },
+      "00213_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "ingolf",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00214_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "ingolf",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00215_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "ingolf",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00222_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "ingolf_2",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00223_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "ingolf_2",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00225_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "ingolf_2",
+            "page_id": 7,
+            "local_step_id": 2
+      },
+      "00228_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "ivar",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00229_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "ivar",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00236_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "jokkmokk",
+            "page_id": 6,
+            "local_step_id": 0
+      },
+      "00237_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "jokkmokk",
+            "page_id": 7,
+            "local_step_id": 1
+      },
+      "00239_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "jokkmokk",
+            "page_id": 9,
+            "local_step_id": 2
+      },
+      "00245_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "jules_1",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00246_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "jules_1",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00256_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "jules_2",
+            "page_id": 6,
+            "local_step_id": 0
+      },
+      "00259_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "jules_2",
+            "page_id": 9,
+            "local_step_id": 1
+      },
+      "00264_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "kaustby",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00265_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "kaustby",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00266_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "kaustby",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00268_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "kaustby",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00272_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "klappsta",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00273_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "klappsta",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00277_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "kyrre",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00285_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "leifarne",
+            "page_id": 7,
+            "local_step_id": 0
+      },
+      "00289_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "lerhamn",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00289_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "lerhamn",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00290_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "lerhamn",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00290_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "lerhamn",
+            "page_id": 4,
+            "local_step_id": 3
+      },
+      "00293_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "lerhamn",
+            "page_id": 7,
+            "local_step_id": 4
+      },
+      "00296_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "lisabo",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00297_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "lisabo",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00299_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "lisabo",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00301_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "lisabo",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00304_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "mammut_1",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00307_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "mammut_1",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00313_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "mammut_2",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00316_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "marius",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00317_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "marius",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00320_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "nils",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00320_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "nils",
+            "page_id": 2,
+            "local_step_id": 1
+      },
+      "00320_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "nils",
+            "page_id": 2,
+            "local_step_id": 2
+      },
+      "00330_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "nilsolle",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00330_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "nilsolle",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00331_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "nilsolle",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00333_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "nilsolle",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00336_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "nilsove",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00337_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "nilsove",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00339_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "nilsove",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00346_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "nordviken",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00347_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "nordviken",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00347_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "nordviken",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00350_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "nordviken",
+            "page_id": 8,
+            "local_step_id": 3
+      },
+      "00357_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "norraker",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00358_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "norraker",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00359_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "norraker",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00360_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "norraker",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00362_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "norraker",
+            "page_id": 8,
+            "local_step_id": 4
+      },
+      "00368_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "norraryd",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00368_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "norraryd",
+            "page_id": 2,
+            "local_step_id": 1
+      },
+      "00369_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "norraryd",
+            "page_id": 3,
+            "local_step_id": 2
+      },
+      "00374_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "omtanksam",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00381_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "perjohan",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00382_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "perjohan",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00383_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "perjohan",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00385_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "perjohan",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00388_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "poang_1",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00388_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "poang_1",
+            "page_id": 2,
+            "local_step_id": 1
+      },
+      "00389_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "poang_1",
+            "page_id": 3,
+            "local_step_id": 2
+      },
+      "00393_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "poang_2",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00393_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "poang_2",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00395_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "poang_2",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00397_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "poang_2",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00398_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "poang_2",
+            "page_id": 8,
+            "local_step_id": 4
+      },
+      "00399_step_5.png": {
+            "class_name": "Chair",
+            "model_name": "poang_2",
+            "page_id": 9,
+            "local_step_id": 5
+      },
+      "00404_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "preben",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00405_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "preben",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00409_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "ragrund",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00409_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "ragrund",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00410_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "ragrund",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00410_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "ragrund",
+            "page_id": 4,
+            "local_step_id": 3
+      },
+      "00411_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "ragrund",
+            "page_id": 5,
+            "local_step_id": 4
+      },
+      "00416_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "reidar",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00417_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "reidar",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00421_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "ronninge",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00421_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "ronninge",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00422_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "ronninge",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00422_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "ronninge",
+            "page_id": 4,
+            "local_step_id": 3
+      },
+      "00424_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "ronninge",
+            "page_id": 6,
+            "local_step_id": 4
+      },
+      "00425_step_5.png": {
+            "class_name": "Chair",
+            "model_name": "ronninge",
+            "page_id": 7,
+            "local_step_id": 5
+      },
+      "00427_step_6.png": {
+            "class_name": "Chair",
+            "model_name": "ronninge",
+            "page_id": 9,
+            "local_step_id": 6
+      },
+      "00433_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "sigurd",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00433_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "sigurd",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00435_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "sigurd",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00436_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "sigurd",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00437_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "sigurd",
+            "page_id": 7,
+            "local_step_id": 4
+      },
+      "00441_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "sjalland",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00442_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "sjalland",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00443_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "sjalland",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00444_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "sjalland",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00447_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "sjalland",
+            "page_id": 9,
+            "local_step_id": 4
+      },
+      "00454_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "skogsta",
+            "page_id": 0,
+            "local_step_id": 0
+      },
+      "00454_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "skogsta",
+            "page_id": 0,
+            "local_step_id": 1
+      },
+      "00455_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "skogsta",
+            "page_id": 1,
+            "local_step_id": 2
+      },
+      "00456_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "skogsta_2",
+            "page_id": 0,
+            "local_step_id": 0
+      },
+      "00460_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "stefan",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00461_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "stefan",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00463_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "stefan",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00468_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "stig",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00469_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "stig",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00470_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "stig",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00471_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "stig",
+            "page_id": 5,
+            "local_step_id": 3
+      },
+      "00472_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "stig",
+            "page_id": 6,
+            "local_step_id": 4
+      },
+      "00474_step_5.png": {
+            "class_name": "Chair",
+            "model_name": "stig",
+            "page_id": 8,
+            "local_step_id": 5
+      },
+      "00475_step_6.png": {
+            "class_name": "Chair",
+            "model_name": "stig",
+            "page_id": 9,
+            "local_step_id": 6
+      },
+      "00477_step_7.png": {
+            "class_name": "Chair",
+            "model_name": "stig",
+            "page_id": 11,
+            "local_step_id": 7
+      },
+      "00481_step_8.png": {
+            "class_name": "Chair",
+            "model_name": "stig",
+            "page_id": 15,
+            "local_step_id": 8
+      },
+      "00484_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "sundvik",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00485_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "sundvik",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00486_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "sundvik",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00489_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "sundvik",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00494_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "teodores",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00495_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "teodores",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00495_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "teodores",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00496_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "teodores",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00497_step_4.png": {
+            "class_name": "Chair",
+            "model_name": "teodores",
+            "page_id": 7,
+            "local_step_id": 4
+      },
+      "00498_step_5.png": {
+            "class_name": "Chair",
+            "model_name": "teodores",
+            "page_id": 8,
+            "local_step_id": 5
+      },
+      "00501_step_6.png": {
+            "class_name": "Chair",
+            "model_name": "teodores",
+            "page_id": 11,
+            "local_step_id": 6
+      },
+      "00505_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "tobias",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00508_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "trogen",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00509_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "trogen",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00510_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "trogen",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00516_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "vedbo",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00517_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "vedbo",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00519_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "vedbo",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00525_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "voxlov",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00526_step_1.png": {
+            "class_name": "Chair",
+            "model_name": "voxlov",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00527_step_2.png": {
+            "class_name": "Chair",
+            "model_name": "voxlov",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00528_step_3.png": {
+            "class_name": "Chair",
+            "model_name": "voxlov",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00533_step_0.png": {
+            "class_name": "Chair",
+            "model_name": "yngvar",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00541_step_0.png": {
+            "class_name": "Desk",
+            "model_name": "alex",
+            "page_id": 7,
+            "local_step_id": 0
+      },
+      "00543_step_1.png": {
+            "class_name": "Desk",
+            "model_name": "alex",
+            "page_id": 9,
+            "local_step_id": 1
+      },
+      "00543_step_2.png": {
+            "class_name": "Desk",
+            "model_name": "alex",
+            "page_id": 9,
+            "local_step_id": 2
+      },
+      "00545_step_3.png": {
+            "class_name": "Desk",
+            "model_name": "alex",
+            "page_id": 11,
+            "local_step_id": 3
+      },
+      "00546_step_4.png": {
+            "class_name": "Desk",
+            "model_name": "alex",
+            "page_id": 12,
+            "local_step_id": 4
+      },
+      "00547_step_5.png": {
+            "class_name": "Desk",
+            "model_name": "alex",
+            "page_id": 13,
+            "local_step_id": 5
+      },
+      "00548_step_6.png": {
+            "class_name": "Desk",
+            "model_name": "alex",
+            "page_id": 14,
+            "local_step_id": 6
+      },
+      "00551_step_7.png": {
+            "class_name": "Desk",
+            "model_name": "alex",
+            "page_id": 17,
+            "local_step_id": 7
+      },
+      "00557_step_0.png": {
+            "class_name": "Desk",
+            "model_name": "flisat",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00558_step_1.png": {
+            "class_name": "Desk",
+            "model_name": "flisat",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00558_step_2.png": {
+            "class_name": "Desk",
+            "model_name": "flisat",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00559_step_3.png": {
+            "class_name": "Desk",
+            "model_name": "flisat",
+            "page_id": 5,
+            "local_step_id": 3
+      },
+      "00564_step_4.png": {
+            "class_name": "Desk",
+            "model_name": "flisat",
+            "page_id": 10,
+            "local_step_id": 4
+      },
+      "00565_step_5.png": {
+            "class_name": "Desk",
+            "model_name": "flisat",
+            "page_id": 11,
+            "local_step_id": 5
+      },
+      "00568_step_6.png": {
+            "class_name": "Desk",
+            "model_name": "flisat",
+            "page_id": 14,
+            "local_step_id": 6
+      },
+      "00570_step_7.png": {
+            "class_name": "Desk",
+            "model_name": "flisat",
+            "page_id": 16,
+            "local_step_id": 7
+      },
+      "00571_step_8.png": {
+            "class_name": "Desk",
+            "model_name": "flisat",
+            "page_id": 17,
+            "local_step_id": 8
+      },
+      "00576_step_0.png": {
+            "class_name": "Desk",
+            "model_name": "fredrik",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00577_step_1.png": {
+            "class_name": "Desk",
+            "model_name": "fredrik",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00578_step_2.png": {
+            "class_name": "Desk",
+            "model_name": "fredrik",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00579_step_3.png": {
+            "class_name": "Desk",
+            "model_name": "fredrik",
+            "page_id": 5,
+            "local_step_id": 3
+      },
+      "00585_step_0.png": {
+            "class_name": "Desk",
+            "model_name": "pahl",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00587_step_1.png": {
+            "class_name": "Desk",
+            "model_name": "pahl",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00588_step_2.png": {
+            "class_name": "Desk",
+            "model_name": "pahl",
+            "page_id": 6,
+            "local_step_id": 2
+      },
+      "00596_step_0.png": {
+            "class_name": "Misc",
+            "model_name": "askholmen",
+            "page_id": 6,
+            "local_step_id": 0
+      },
+      "00597_step_1.png": {
+            "class_name": "Misc",
+            "model_name": "askholmen",
+            "page_id": 7,
+            "local_step_id": 1
+      },
+      "00598_step_2.png": {
+            "class_name": "Misc",
+            "model_name": "askholmen",
+            "page_id": 8,
+            "local_step_id": 2
+      },
+      "00599_step_3.png": {
+            "class_name": "Misc",
+            "model_name": "askholmen",
+            "page_id": 9,
+            "local_step_id": 3
+      },
+      "00604_step_0.png": {
+            "class_name": "Misc",
+            "model_name": "lantliv",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00606_step_1.png": {
+            "class_name": "Misc",
+            "model_name": "lantliv",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00608_step_2.png": {
+            "class_name": "Misc",
+            "model_name": "lantliv",
+            "page_id": 6,
+            "local_step_id": 2
+      },
+      "00609_step_3.png": {
+            "class_name": "Misc",
+            "model_name": "lantliv",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00614_step_0.png": {
+            "class_name": "Misc",
+            "model_name": "lantliv_2",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00614_step_1.png": {
+            "class_name": "Misc",
+            "model_name": "lantliv_2",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00615_step_2.png": {
+            "class_name": "Misc",
+            "model_name": "lantliv_2",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00617_step_3.png": {
+            "class_name": "Misc",
+            "model_name": "lantliv_2",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00622_step_0.png": {
+            "class_name": "Misc",
+            "model_name": "olivblad",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00625_step_1.png": {
+            "class_name": "Misc",
+            "model_name": "olivblad",
+            "page_id": 7,
+            "local_step_id": 1
+      },
+      "00626_step_2.png": {
+            "class_name": "Misc",
+            "model_name": "olivblad",
+            "page_id": 8,
+            "local_step_id": 2
+      },
+      "00627_step_3.png": {
+            "class_name": "Misc",
+            "model_name": "olivblad",
+            "page_id": 9,
+            "local_step_id": 3
+      },
+      "00629_step_4.png": {
+            "class_name": "Misc",
+            "model_name": "olivblad",
+            "page_id": 11,
+            "local_step_id": 4
+      },
+      "00630_step_5.png": {
+            "class_name": "Misc",
+            "model_name": "olivblad",
+            "page_id": 12,
+            "local_step_id": 5
+      },
+      "00631_step_6.png": {
+            "class_name": "Misc",
+            "model_name": "olivblad",
+            "page_id": 13,
+            "local_step_id": 6
+      },
+      "00632_step_7.png": {
+            "class_name": "Misc",
+            "model_name": "olivblad",
+            "page_id": 14,
+            "local_step_id": 7
+      },
+      "00640_step_0.png": {
+            "class_name": "Misc",
+            "model_name": "satsumas",
+            "page_id": 6,
+            "local_step_id": 0
+      },
+      "00640_step_1.png": {
+            "class_name": "Misc",
+            "model_name": "satsumas",
+            "page_id": 6,
+            "local_step_id": 1
+      },
+      "00649_step_0.png": {
+            "class_name": "Misc",
+            "model_name": "satsumas_2",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00651_step_1.png": {
+            "class_name": "Misc",
+            "model_name": "satsumas_2",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00652_step_2.png": {
+            "class_name": "Misc",
+            "model_name": "satsumas_2",
+            "page_id": 6,
+            "local_step_id": 2
+      },
+      "00654_step_3.png": {
+            "class_name": "Misc",
+            "model_name": "satsumas_2",
+            "page_id": 8,
+            "local_step_id": 3
+      },
+      "00662_step_0.png": {
+            "class_name": "Misc",
+            "model_name": "smussla",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00662_step_1.png": {
+            "class_name": "Misc",
+            "model_name": "smussla",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00664_step_2.png": {
+            "class_name": "Misc",
+            "model_name": "smussla",
+            "page_id": 6,
+            "local_step_id": 2
+      },
+      "00665_step_3.png": {
+            "class_name": "Misc",
+            "model_name": "smussla",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00666_step_4.png": {
+            "class_name": "Misc",
+            "model_name": "smussla",
+            "page_id": 8,
+            "local_step_id": 4
+      },
+      "00667_step_5.png": {
+            "class_name": "Misc",
+            "model_name": "smussla",
+            "page_id": 9,
+            "local_step_id": 5
+      },
+      "00673_step_0.png": {
+            "class_name": "Misc",
+            "model_name": "vaniljstang",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00674_step_1.png": {
+            "class_name": "Misc",
+            "model_name": "vaniljstang",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00675_step_2.png": {
+            "class_name": "Misc",
+            "model_name": "vaniljstang",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00676_step_3.png": {
+            "class_name": "Misc",
+            "model_name": "vaniljstang",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00680_step_4.png": {
+            "class_name": "Misc",
+            "model_name": "vaniljstang",
+            "page_id": 10,
+            "local_step_id": 4
+      },
+      "00684_step_0.png": {
+            "class_name": "Misc",
+            "model_name": "vesken",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00685_step_1.png": {
+            "class_name": "Misc",
+            "model_name": "vesken",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00685_step_2.png": {
+            "class_name": "Misc",
+            "model_name": "vesken",
+            "page_id": 3,
+            "local_step_id": 2
+      },
+      "00685_step_3.png": {
+            "class_name": "Misc",
+            "model_name": "vesken",
+            "page_id": 3,
+            "local_step_id": 3
+      },
+      "00692_step_0.png": {
+            "class_name": "Misc",
+            "model_name": "vittsjo",
+            "page_id": 6,
+            "local_step_id": 0
+      },
+      "00693_step_1.png": {
+            "class_name": "Misc",
+            "model_name": "vittsjo",
+            "page_id": 7,
+            "local_step_id": 1
+      },
+      "00695_step_2.png": {
+            "class_name": "Misc",
+            "model_name": "vittsjo",
+            "page_id": 9,
+            "local_step_id": 2
+      },
+      "00696_step_3.png": {
+            "class_name": "Misc",
+            "model_name": "vittsjo",
+            "page_id": 10,
+            "local_step_id": 3
+      },
+      "00699_step_4.png": {
+            "class_name": "Misc",
+            "model_name": "vittsjo",
+            "page_id": 13,
+            "local_step_id": 4
+      },
+      "00704_step_0.png": {
+            "class_name": "Misc",
+            "model_name": "vittsjo_2",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00705_step_1.png": {
+            "class_name": "Misc",
+            "model_name": "vittsjo_2",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00705_step_2.png": {
+            "class_name": "Misc",
+            "model_name": "vittsjo_2",
+            "page_id": 3,
+            "local_step_id": 2
+      },
+      "00713_step_0.png": {
+            "class_name": "Shelf",
+            "model_name": "laiva",
+            "page_id": 7,
+            "local_step_id": 0
+      },
+      "00713_step_1.png": {
+            "class_name": "Shelf",
+            "model_name": "laiva",
+            "page_id": 7,
+            "local_step_id": 1
+      },
+      "00714_step_2.png": {
+            "class_name": "Shelf",
+            "model_name": "laiva",
+            "page_id": 8,
+            "local_step_id": 2
+      },
+      "00715_step_3.png": {
+            "class_name": "Shelf",
+            "model_name": "laiva",
+            "page_id": 9,
+            "local_step_id": 3
+      },
+      "00717_step_4.png": {
+            "class_name": "Shelf",
+            "model_name": "laiva",
+            "page_id": 11,
+            "local_step_id": 4
+      },
+      "00724_step_0.png": {
+            "class_name": "Shelf",
+            "model_name": "pinnig",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00725_step_1.png": {
+            "class_name": "Shelf",
+            "model_name": "pinnig",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00726_step_2.png": {
+            "class_name": "Shelf",
+            "model_name": "pinnig",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00727_step_3.png": {
+            "class_name": "Shelf",
+            "model_name": "pinnig",
+            "page_id": 5,
+            "local_step_id": 3
+      },
+      "00740_step_0.png": {
+            "class_name": "Shelf",
+            "model_name": "vesken",
+            "page_id": 10,
+            "local_step_id": 0
+      },
+      "00741_step_1.png": {
+            "class_name": "Shelf",
+            "model_name": "vesken",
+            "page_id": 11,
+            "local_step_id": 1
+      },
+      "00741_step_2.png": {
+            "class_name": "Shelf",
+            "model_name": "vesken",
+            "page_id": 11,
+            "local_step_id": 2
+      },
+      "00742_step_3.png": {
+            "class_name": "Shelf",
+            "model_name": "vesken",
+            "page_id": 12,
+            "local_step_id": 3
+      },
+      "00743_step_4.png": {
+            "class_name": "Shelf",
+            "model_name": "vesken",
+            "page_id": 13,
+            "local_step_id": 4
+      },
+      "00745_step_5.png": {
+            "class_name": "Shelf",
+            "model_name": "vesken",
+            "page_id": 15,
+            "local_step_id": 5
+      },
+      "00753_step_0.png": {
+            "class_name": "Table",
+            "model_name": "applaro",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00758_step_0.png": {
+            "class_name": "Table",
+            "model_name": "bjorkudden",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00759_step_1.png": {
+            "class_name": "Table",
+            "model_name": "bjorkudden",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00760_step_2.png": {
+            "class_name": "Table",
+            "model_name": "bjorkudden",
+            "page_id": 6,
+            "local_step_id": 2
+      },
+      "00761_step_3.png": {
+            "class_name": "Table",
+            "model_name": "bjorkudden",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00761_step_4.png": {
+            "class_name": "Table",
+            "model_name": "bjorkudden",
+            "page_id": 7,
+            "local_step_id": 4
+      },
+      "00770_step_0.png": {
+            "class_name": "Table",
+            "model_name": "bjorkudden_2",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00772_step_1.png": {
+            "class_name": "Table",
+            "model_name": "bjorkudden_2",
+            "page_id": 6,
+            "local_step_id": 1
+      },
+      "00780_step_0.png": {
+            "class_name": "Table",
+            "model_name": "falholmen",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00781_step_1.png": {
+            "class_name": "Table",
+            "model_name": "falholmen",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00785_step_0.png": {
+            "class_name": "Table",
+            "model_name": "fjallbo",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00786_step_1.png": {
+            "class_name": "Table",
+            "model_name": "fjallbo",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00787_step_2.png": {
+            "class_name": "Table",
+            "model_name": "fjallbo",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00792_step_0.png": {
+            "class_name": "Table",
+            "model_name": "gladom",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00793_step_1.png": {
+            "class_name": "Table",
+            "model_name": "gladom",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00793_step_2.png": {
+            "class_name": "Table",
+            "model_name": "gladom",
+            "page_id": 3,
+            "local_step_id": 2
+      },
+      "00797_step_0.png": {
+            "class_name": "Table",
+            "model_name": "jokkmokk",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00804_step_0.png": {
+            "class_name": "Table",
+            "model_name": "klingsbo_1",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00804_step_1.png": {
+            "class_name": "Table",
+            "model_name": "klingsbo_1",
+            "page_id": 2,
+            "local_step_id": 1
+      },
+      "00805_step_2.png": {
+            "class_name": "Table",
+            "model_name": "klingsbo_1",
+            "page_id": 3,
+            "local_step_id": 2
+      },
+      "00809_step_0.png": {
+            "class_name": "Table",
+            "model_name": "lack",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00813_step_1.png": {
+            "class_name": "Table",
+            "model_name": "lack",
+            "page_id": 7,
+            "local_step_id": 1
+      },
+      "00818_step_0.png": {
+            "class_name": "Table",
+            "model_name": "lunnarp",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00819_step_1.png": {
+            "class_name": "Table",
+            "model_name": "lunnarp",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00820_step_2.png": {
+            "class_name": "Table",
+            "model_name": "lunnarp",
+            "page_id": 6,
+            "local_step_id": 2
+      },
+      "00821_step_3.png": {
+            "class_name": "Table",
+            "model_name": "lunnarp",
+            "page_id": 7,
+            "local_step_id": 3
+      },
+      "00821_step_4.png": {
+            "class_name": "Table",
+            "model_name": "lunnarp",
+            "page_id": 7,
+            "local_step_id": 4
+      },
+      "00823_step_5.png": {
+            "class_name": "Table",
+            "model_name": "lunnarp",
+            "page_id": 9,
+            "local_step_id": 5
+      },
+      "00828_step_0.png": {
+            "class_name": "Table",
+            "model_name": "nesna",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00829_step_1.png": {
+            "class_name": "Table",
+            "model_name": "nesna",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00829_step_2.png": {
+            "class_name": "Table",
+            "model_name": "nesna",
+            "page_id": 3,
+            "local_step_id": 2
+      },
+      "00829_step_3.png": {
+            "class_name": "Table",
+            "model_name": "nesna",
+            "page_id": 3,
+            "local_step_id": 3
+      },
+      "00830_step_4.png": {
+            "class_name": "Table",
+            "model_name": "nesna",
+            "page_id": 4,
+            "local_step_id": 4
+      },
+      "00831_step_5.png": {
+            "class_name": "Table",
+            "model_name": "nesna",
+            "page_id": 5,
+            "local_step_id": 5
+      },
+      "00837_step_0.png": {
+            "class_name": "Table",
+            "model_name": "satsumas",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00838_step_1.png": {
+            "class_name": "Table",
+            "model_name": "satsumas",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00840_step_2.png": {
+            "class_name": "Table",
+            "model_name": "satsumas",
+            "page_id": 6,
+            "local_step_id": 2
+      },
+      "00846_step_0.png": {
+            "class_name": "Table",
+            "model_name": "sjalland",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00846_step_1.png": {
+            "class_name": "Table",
+            "model_name": "sjalland",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00847_step_2.png": {
+            "class_name": "Table",
+            "model_name": "sjalland",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00847_step_3.png": {
+            "class_name": "Table",
+            "model_name": "sjalland",
+            "page_id": 5,
+            "local_step_id": 3
+      },
+      "00848_step_4.png": {
+            "class_name": "Table",
+            "model_name": "sjalland",
+            "page_id": 6,
+            "local_step_id": 4
+      },
+      "00852_step_5.png": {
+            "class_name": "Table",
+            "model_name": "sjalland",
+            "page_id": 8,
+            "local_step_id": 5
+      },
+      "00853_step_6.png": {
+            "class_name": "Table",
+            "model_name": "sjalland",
+            "page_id": 9,
+            "local_step_id": 6
+      },
+      "00858_step_0.png": {
+            "class_name": "Table",
+            "model_name": "tommaryd",
+            "page_id": 4,
+            "local_step_id": 0
+      },
+      "00858_step_1.png": {
+            "class_name": "Table",
+            "model_name": "tommaryd",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00859_step_2.png": {
+            "class_name": "Table",
+            "model_name": "tommaryd",
+            "page_id": 5,
+            "local_step_id": 2
+      },
+      "00860_step_3.png": {
+            "class_name": "Table",
+            "model_name": "tommaryd",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00861_step_4.png": {
+            "class_name": "Table",
+            "model_name": "tommaryd",
+            "page_id": 7,
+            "local_step_id": 4
+      },
+      "00862_step_5.png": {
+            "class_name": "Table",
+            "model_name": "tommaryd",
+            "page_id": 8,
+            "local_step_id": 5
+      },
+      "00875_step_0.png": {
+            "class_name": "Table",
+            "model_name": "tornviken",
+            "page_id": 5,
+            "local_step_id": 0
+      },
+      "00877_step_1.png": {
+            "class_name": "Table",
+            "model_name": "tornviken",
+            "page_id": 7,
+            "local_step_id": 1
+      },
+      "00879_step_2.png": {
+            "class_name": "Table",
+            "model_name": "tornviken",
+            "page_id": 9,
+            "local_step_id": 2
+      },
+      "00880_step_3.png": {
+            "class_name": "Table",
+            "model_name": "tornviken",
+            "page_id": 10,
+            "local_step_id": 3
+      },
+      "00882_step_4.png": {
+            "class_name": "Table",
+            "model_name": "tornviken",
+            "page_id": 12,
+            "local_step_id": 4
+      },
+      "00883_step_5.png": {
+            "class_name": "Table",
+            "model_name": "tornviken",
+            "page_id": 13,
+            "local_step_id": 5
+      },
+      "00884_step_6.png": {
+            "class_name": "Table",
+            "model_name": "tornviken",
+            "page_id": 14,
+            "local_step_id": 6
+      },
+      "00885_step_7.png": {
+            "class_name": "Table",
+            "model_name": "tornviken",
+            "page_id": 15,
+            "local_step_id": 7
+      },
+      "00887_step_8.png": {
+            "class_name": "Table",
+            "model_name": "tornviken",
+            "page_id": 17,
+            "local_step_id": 8
+      },
+      "00891_step_9.png": {
+            "class_name": "Table",
+            "model_name": "tornviken",
+            "page_id": 21,
+            "local_step_id": 9
+      },
+      "00897_step_0.png": {
+            "class_name": "Table",
+            "model_name": "vadholma",
+            "page_id": 3,
+            "local_step_id": 0
+      },
+      "00899_step_1.png": {
+            "class_name": "Table",
+            "model_name": "vadholma",
+            "page_id": 5,
+            "local_step_id": 1
+      },
+      "00901_step_2.png": {
+            "class_name": "Table",
+            "model_name": "vadholma",
+            "page_id": 7,
+            "local_step_id": 2
+      },
+      "00903_step_3.png": {
+            "class_name": "Table",
+            "model_name": "vadholma",
+            "page_id": 9,
+            "local_step_id": 3
+      },
+      "00903_step_4.png": {
+            "class_name": "Table",
+            "model_name": "vadholma",
+            "page_id": 9,
+            "local_step_id": 4
+      },
+      "00908_step_5.png": {
+            "class_name": "Table",
+            "model_name": "vadholma",
+            "page_id": 14,
+            "local_step_id": 5
+      },
+      "00912_step_0.png": {
+            "class_name": "Table",
+            "model_name": "vittsjo_1",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00914_step_1.png": {
+            "class_name": "Table",
+            "model_name": "vittsjo_1",
+            "page_id": 4,
+            "local_step_id": 1
+      },
+      "00916_step_2.png": {
+            "class_name": "Table",
+            "model_name": "vittsjo_1",
+            "page_id": 6,
+            "local_step_id": 2
+      },
+      "00920_step_0.png": {
+            "class_name": "Table",
+            "model_name": "vittsjo_2",
+            "page_id": 2,
+            "local_step_id": 0
+      },
+      "00921_step_1.png": {
+            "class_name": "Table",
+            "model_name": "vittsjo_2",
+            "page_id": 3,
+            "local_step_id": 1
+      },
+      "00922_step_2.png": {
+            "class_name": "Table",
+            "model_name": "vittsjo_2",
+            "page_id": 4,
+            "local_step_id": 2
+      },
+      "00924_step_3.png": {
+            "class_name": "Table",
+            "model_name": "vittsjo_2",
+            "page_id": 6,
+            "local_step_id": 3
+      },
+      "00925_step_4.png": {
+            "class_name": "Table",
+            "model_name": "vittsjo_2",
+            "page_id": 7,
+            "local_step_id": 4
+      },
+      "00935_step_0.png": {
+            "class_name": "Table",
+            "model_name": "voxlov",
+            "page_id": 5,
+            "local_step_id": 0
+      },
+      "00936_step_1.png": {
+            "class_name": "Table",
+            "model_name": "voxlov",
+            "page_id": 6,
+            "local_step_id": 1
+      },
+      "00938_step_2.png": {
+            "class_name": "Table",
+            "model_name": "voxlov",
+            "page_id": 8,
+            "local_step_id": 2
+      }
+}
