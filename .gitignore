@@ -3,4 +3,5 @@
 __pycache__
 
 ## Data
-dataset*
+dataset/ikea_man
+dataset/images

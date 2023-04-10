@@ -2,6 +2,8 @@
 
 Poppler installation steps: [github](https://github.com/Belval/pdf2image)
 
+IKEA-Manual data can be downloaded [here](https://download.cs.stanford.edu/viscam/ikea_manual/dataset.zip)
+
 Dataset folder structure:
 ```
 <root_dir>
