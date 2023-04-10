@@ -1,9 +1,10 @@
-.DS_Store
-.vscode
-.idea*
-__pycache__
+**/.DS_Store
+**/.vscode
+**/.idea*
+**/__pycache__
 
 ## Data
 dataset/ikea_man
 dataset/images
+dataset/images_prev
 cad_models/
