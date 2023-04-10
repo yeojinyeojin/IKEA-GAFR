@@ -7,4 +7,5 @@
 dataset/ikea_man
 dataset/images
 dataset/images_prev
+dataset/images_masks
 cad_models/
