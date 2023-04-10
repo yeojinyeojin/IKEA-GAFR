@@ -7,14 +7,11 @@ from pytorch3d.transforms import Rotate, Translate, matrix_to_euler_angles
 from pytorch3d.renderer import TexturesVertex, look_at_view_transform
 from pytorch3d.renderer.cameras import FoVPerspectiveCameras
 from pytorch3d.vis.plotly_vis import plot_scene
+import argparse as ap
 
-dataset_path = "/Users/niviru/Desktop/CMU/Classes/FinalProjectVLR3D/IKEA/dataset/"
-data_json = open(os.path.join(dataset_path, "main_data.json"))
-data = json.load(data_json)
-
-p3d_coordinate_frame = Rotate(torch.tensor([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
-opencv_coordinate_frame = Rotate(torch.tensor([[-1, 0, 0], [0, -1, 0], [0, 0, 1]]))
-opengl_coordinate_frame = Rotate(torch.tensor([[-1, 0, 0], [0, 1, 0], [0, 0, -1]]))
+# p3d_coordinate_frame = Rotate(torch.tensor([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
+# opencv_coordinate_frame = Rotate(torch.tensor([[-1, 0, 0], [0, -1, 0], [0, 0, 1]]))
+# opengl_coordinate_frame = Rotate(torch.tensor([[-1, 0, 0], [0, 1, 0], [0, 0, -1]]))
 
 def preprocess_part_idxs(part_list):
     '''
@@ -35,10 +32,12 @@ def preprocess_part_idxs(part_list):
     
     return step_part_nums, step_part_idxs
 
-def main():
+def main(args):
+    dataset_path = args.dataset_path
+    data_json = open(os.path.join(dataset_path, "main_data.json"))
+    data = json.load(data_json)
+
     for sample_num, sample in enumerate(data):
-        if sample_num != 3:
-            continue
         category = sample['category']
         name = sample['name']
         print(f'{category}: {name}')
@@ -96,7 +95,7 @@ def main():
             #     faces=model_faces.unsqueeze(0),
             #     textures=TexturesVertex(model_textures.unsqueeze(0))
             # )
-            model_write_dir = os.path.join("./cad_models", category, name + "/")
+            model_write_dir = os.path.join(args.output_dir, category, name + "/")
             print(f'Writing model to {model_write_dir}')
             if not os.path.exists(model_write_dir):
                 os.makedirs(model_write_dir)
@@ -121,4 +120,8 @@ def main():
     print("Done getting all CAD models")
 
 if __name__ == '__main__':
-    main()
+    parser = ap.ArgumentParser()
+    parser.add_argument('--dataset_path', type=str, help='Path to IKEA-Manual Dataset')
+    parser.add_argument('--output_dir', type=str, help="Directory to write CAD models to", default="./cad_models")
+    args = parser.parse_args()
+    main(args)
