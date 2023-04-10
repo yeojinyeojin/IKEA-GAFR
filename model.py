@@ -49,7 +49,8 @@ class Pix2Voxel(nn.Module):
     
     def forward(self, images, args):
         if not args.load_feat:
-            images_normalize = self.normalize(images.permute(0,3,1,2))
+            images_normalize = self.normalize(images)
+            # images_normalize = self.normalize(images.permute(0,3,1,2))
             encoded_feat = self.encoder(images_normalize).squeeze(-1).squeeze(-1) # b x 512
         else:
             encoded_feat = images # in case of args.load_feat input images are pretrained resnet18 features of b x 512 size

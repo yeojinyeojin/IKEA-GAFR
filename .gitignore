@@ -1,3 +1,6 @@
 .vscode
-dataset*
 .idea*
+__pycache__
+
+## Data
+dataset*

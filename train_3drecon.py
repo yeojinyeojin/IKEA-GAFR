@@ -17,7 +17,7 @@ from torchvision import models as torchvision_models
 import pytorch3d
 
 from model import Pix2Voxel
-from utils import create_dir
+from train_utils import create_dir
 from data_loader import IKEAManual
 
 def parse_args():
@@ -34,6 +34,8 @@ def parse_args():
     parser.add_argument('--num_workers', default=0, type=str)
     parser.add_argument('--lr', default=4e-4, type=str)
     parser.add_argument('--train_test_split_ratio', default=0.7, type=float)
+    parser.add_argument('--resize_w', default=640, type=int)
+    parser.add_argument('--resize_h', default=480, type=int)
     
     # Logging parameters
     parser.add_argument('--log_freq', default=1000, type=str)
@@ -43,12 +45,12 @@ def parse_args():
     
     # Directories & Checkpoint
     parser.add_argument('--load_feat', action='store_true') 
-    parser.add_argument('--load_checkpoint', default='', type=str)            
+    parser.add_argument('--load_checkpoint', default=None, type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
-    parser.add_argument('--data_dir', type=str, default='./dataset/ikea_man')
+    parser.add_argument('--data_dir', type=str, default='./dataset')
     
-    return parser
+    return parser.parse_args()
 
 def preprocess(feed_dict, args):
     #TODO: adjust the way data are loaded & formatted
@@ -79,8 +81,8 @@ def main(args):
     
     ## Tensorboard Logger
     dt = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    create_dir(f'{args.log_dir}/{dt}')
-    writer = SummaryWriter(f'{args.log_dir}/{dt}')
+    create_dir(f'{args.logs_dir}/{dt}')
+    writer = SummaryWriter(f'{args.logs_dir}/{dt}')
     
     ## Load model & optimizer
     if args.model == 'pix2vox':
@@ -97,13 +99,18 @@ def main(args):
         print(f"Succesfully loaded iter {start_iter}")
     
     ## Load dataset
-    dataset = IKEAManual(args.data_dir)
+    transform = transforms.Compose([
+        transforms.Resize(tuple((args.resize_w, args.resize_h))),
+        transforms.ToTensor()
+        
+    ]) #TODO: normalize?
+    dataset = IKEAManual(args.data_dir, args.load_feat, transform)
     train_set, val_set = torch.utils.data.random_split(dataset, [args.train_test_split_ratio, 1-args.train_test_split_ratio])
     train_dataloader = DataLoader(dataset=train_set, 
                               batch_size=args.batch_size, 
                               shuffle=True, 
                               num_workers=args.num_workers)
-    val_loader = DataLoader(dataset=val_set, 
+    val_dataloader = DataLoader(dataset=val_set, 
                             batch_size=args.batch_size, 
                             shuffle=True, 
                             num_workers=args.num_workers)
