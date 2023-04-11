@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision import models as torchvision_models
 import pytorch3d
+from pytorch3d.io import load_obj
 
 class IKEAManualPDF(Dataset):
     def __init__(self, datadir, transforms=None):
@@ -20,6 +21,7 @@ class IKEAManualPDF(Dataset):
         
         self.imgdir = f"{datadir}/images"
         self.imgpaths = glob(f"{self.imgdir}/**/*.png", recursive=True)
+        
         
         self.annotfile = f"{datadir}/annotation.json" #TODO
         with open(self.annotfile) as f:
@@ -53,18 +55,19 @@ class IKEAManualStep(Dataset):
         super().__init__()
         
         self.imgdir = f"{datadir}/images"
-        self.imgpaths = glob(f"{self.imgdir}/**/*.png", recursive=True)
-        
+        #self.imgpaths = glob(f"{self.imgdir}/**/*.png", recursive=True)
+        self.imgpaths = sorted(os.listdir(self.imgdir))
+
+        self.modeldir = f"{datadir}/models"
+        #self.modelpaths = glob(f"selg.modeldir}/**/*.obj", recursive=True)
+        self.modelpaths = sorted(os.listdir(self.modeldir))
+
         self.imgs = []
         for imgpath in self.imgpaths:
-            img = Image.open(imgpath)
+            img = Image.open(os.path.join(self.imgdir, imgpath))
             if transforms is not None:
                 img = transforms(img)
             self.imgs.append(img)
-        # sorted(self.imgs) #TODO: needed?
-        
-        #TODO: load voxels
-        self.voxels = []
         
     def __len__(self):
         return len(self.imgs)

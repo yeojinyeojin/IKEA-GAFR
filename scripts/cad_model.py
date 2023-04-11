@@ -37,6 +37,7 @@ def main(args):
     data_json = open(os.path.join(dataset_path, "main_data.json"))
     data = json.load(data_json)
 
+    counter = 0
     for sample_num, sample in enumerate(data):
         category = sample['category']
         name = sample['name']
@@ -100,6 +101,12 @@ def main(args):
             if not os.path.exists(model_write_dir):
                 os.makedirs(model_write_dir)
             save_obj(f=os.path.join(model_write_dir, "step_" + str(step_num) + ".obj"), verts=model_verts, faces=model_faces)
+            
+            model_write_dir = os.path.join(os.path.join(args.dataset_path), "models" + "/")
+            if not os.path.exists(model_write_dir):
+                os.makedirs(model_write_dir)
+            save_obj(f=os.path.join(model_write_dir, "{:05d}".format(counter) + '.obj'), verts=model_verts, faces=model_faces)
+            counter += 1
             
         #     cam_R, cam_T = look_at_view_transform(
         #         dist=3,
