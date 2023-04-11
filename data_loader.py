@@ -12,8 +12,9 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from torchvision import models as torchvision_models
-import pytorch3d
-from pytorch3d.io import load_obj
+# import pytorch3d
+# from pytorch3d.io import load_obj
+
 
 class IKEAManualPDF(Dataset):
     def __init__(self, datadir, transforms=None):

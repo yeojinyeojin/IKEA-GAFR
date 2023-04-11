@@ -3,10 +3,10 @@
 # 2) file: path/to/imgs.txt, or 
 # 3) list: [path/to/imgs1, path/to/imgs2, ..]
 #TODO: adjust the filepaths
-path: ../datasets/ikea_man  # dataset root dir
-train: images/train  # train images (relative to 'path')
-val: images/val  # val images (relative to 'path')
-test:  # test images (optional)
+path: ../dataset  # dataset root dir
+train: images  # train images (relative to 'path')
+val: images  # val images (relative to 'path')
+test: images # test images (optional)
 
 # Classes
 names:
