@@ -40,7 +40,7 @@ The above structure is purely for easy reference. For training, the script will 
 |   |-- 00001.off
 |   ...
 ```
-
+### Verifying Ground Truth Quality
 Download zipped data from [here](https://drive.google.com/file/d/1xsCA_YD8UuZhmxxsdNxXkASQ6GL0s_dF/view?usp=share_link). Unzip and move all directories into your main dataset directory. Dataset directory should have the following structure: 
  ```
 <dataset dir>
