@@ -70,6 +70,33 @@ def obj_to_off(verts, faces, dataset_dir, model_num):
                 if f_num == 0:
                     out_file.write(b"\n")
 
+def off_to_obj(off_filepath, return_mesh_object=False):
+    output_path = os.path.join(os.path.dirname(off_filepath), os.path.basename(off_filepath).split(".")[0] + ".obj")
+    with open(off_filepath, 'r') as f:
+        data = f.read().split("\n")
+        num_verts = int(data[1].split(" ")[0])
+        num_faces = int(data[1].split(" ")[1])
+        vert_start_idx = 2
+        face_start_idx = vert_start_idx + num_verts
+        verts = np.array([v.split(" ") for v in data[vert_start_idx: face_start_idx]]).astype(np.float64)
+        verts = torch.from_numpy(verts)
+        faces = np.array([f.split(" ")[1:] for f in data[face_start_idx:] if len(f) > 0]).astype(int)
+        faces = torch.from_numpy(faces)
+        
+    f.close()
+    print(f'Saving model to {output_path}...')
+    save_obj(f=output_path, verts=verts, faces=faces)
+    
+    if return_mesh_object:
+        textures = torch.zeros_like(verts) + torch.tensor([[0.7, 0.7, 1.0]])
+        mesh = Meshes(
+            verts=verts.unsqueeze(0),
+            faces=faces.unsqueeze(0),
+            textures=TexturesVertex(textures.unsqueeze(0))
+        )
+
+        return mesh
+
 def main(args):
     dataset_path = args.dataset_path
     data_json = open(os.path.join(dataset_path, "main_data.json"))
@@ -134,23 +161,44 @@ def main(args):
             
             if args.save_off_files:
                 obj_to_off(model_verts, model_faces, dataset_path, counter)
-            
-            counter += 1
-
+        
             if args.visualize:
-                model_textures = torch.ones_like(model_verts)*torch.tensor([0.7, 0.7, 1.0])
-                model_mesh = Meshes(
-                    verts=model_verts.unsqueeze(0),
-                    faces=model_faces.unsqueeze(0),
-                    textures=TexturesVertex(model_textures.unsqueeze(0))
+                # model_textures = torch.ones_like(model_verts)*torch.tensor([1.0, 0.0, 0.0])
+                # model_verts_viz = model_verts + torch.tensor([[0.0, 32.0, 0.0]])
+                # model_mesh = Meshes(
+                #     verts=model_verts_viz.unsqueeze(0),
+                #     faces=model_faces.unsqueeze(0),
+                #     textures=TexturesVertex(model_textures.unsqueeze(0))
+                # )
+
+                scaled_model_verts, scaled_model_face_data, _ = load_obj(os.path.join(dataset_path, "off_models_32_x_32", "{:05d}.obj".format(counter)))
+                scaled_model_verts += torch.tensor([[0.0, 20.0, 0.0]])
+                scaled_model_textures = torch.ones_like(scaled_model_verts)*torch.tensor([[1.0, 0.0, 0.0]])
+                scaled_model_mesh = Meshes(
+                    verts=scaled_model_verts.unsqueeze(0),
+                    faces=scaled_model_face_data.verts_idx.unsqueeze(0),
+                    textures=TexturesVertex(scaled_model_textures.unsqueeze(0))
+                )
+
+                gt_vox_verts, gt_vox_face_data, _ = load_obj(os.path.join(dataset_path, "gt_voxels_32_x_32", "{:05d}.obj".format(counter)))
+                gt_textures = torch.ones_like(gt_vox_verts)*torch.tensor([[0.0, 1.0, 0.0]])
+                gt_mesh = Meshes(
+                    verts=gt_vox_verts.unsqueeze(0),
+                    faces=gt_vox_face_data.verts_idx.unsqueeze(0),
+                    textures=TexturesVertex(gt_textures.unsqueeze(0))
                 )
                 scene = plot_scene({
                     "Figure1": {
-                        "Meshes": model_mesh
+                        "Meshes": scaled_model_mesh,
+                        "GT Mesh": gt_mesh
                     }
                 })
                 scene.show()
                 input("Close viz window and press enter to continue to next sample...")
+            
+            # off_to_obj(os.path.join(dataset_path, "gt_voxels_32_x_32", "{:05d}.off".format(counter)))
+            # off_to_obj(os.path.join(dataset_path, "off_models_32_x_32", "{:05d}.off".format(counter)))
+            counter += 1
 
     if args.save_off_files:
         shutil.rmtree("./tmp")
