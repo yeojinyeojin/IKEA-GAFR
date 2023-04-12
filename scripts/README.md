@@ -76,6 +76,6 @@ Download zipped data from [here](https://drive.google.com/file/d/1xsCA_YD8UuZhmx
 
 For verifying ground truth quality, run the following command from this directory:
 ```python
-python cad_model.py --dataset_path <path to dataset> --visualize
+python cad_model.py --dataset_path <path to dataset> --visualize --start_idx <model idx to start visualizing>
 ```
-This will open up a visualizer in your browser for each model and will pause the script until you have manually verified ground truth quality, closed the window, and hit enter to visualize the next model. GT Voxels will be in green, GT Meshes will be in red.
+This will open up a visualizer in your browser for each model in range #start_idx to #start_idx + 130 and will pause the script until you have manually verified ground truth quality, closed the window, and hit enter to visualize the next model. GT Voxels will be in green, GT Meshes will be in red.

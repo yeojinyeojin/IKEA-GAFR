@@ -102,17 +102,23 @@ def main(args):
     data_json = open(os.path.join(dataset_path, "main_data.json"))
     data = json.load(data_json)
 
-    counter = 0
+    counter = -1
     for sample in data:
         category = sample['category']
         name = sample['name']
-        print(f'Processing {category}: {name}...')
+        # print(f'Processing {category}: {name}...')
         model_dir = os.path.join(dataset_path, "parts", category, name)
         part_names = sorted(os.listdir(model_dir))
         if args.prediction_frame == "object-centric":
             prev_part_transforms = [None]*len(part_names)
         
         for step_num, step_data in enumerate(sample['steps']):
+            counter += 1
+            if counter < args.start_idx:
+                continue
+            elif counter > (args.start_idx + 130):
+                return
+            print(f'Model # {counter}')
             model_verts = None
             model_faces = None
             
@@ -172,7 +178,7 @@ def main(args):
                 # )
 
                 scaled_model_verts, scaled_model_face_data, _ = load_obj(os.path.join(dataset_path, "off_models_32_x_32", "{:05d}.obj".format(counter)))
-                scaled_model_verts += torch.tensor([[0.0, 20.0, 0.0]])
+                scaled_model_verts += torch.tensor([[0.0, 32.0, 0.0]])
                 scaled_model_textures = torch.ones_like(scaled_model_verts)*torch.tensor([[1.0, 0.0, 0.0]])
                 scaled_model_mesh = Meshes(
                     verts=scaled_model_verts.unsqueeze(0),
@@ -198,7 +204,7 @@ def main(args):
             
             # off_to_obj(os.path.join(dataset_path, "gt_voxels_32_x_32", "{:05d}.off".format(counter)))
             # off_to_obj(os.path.join(dataset_path, "off_models_32_x_32", "{:05d}.off".format(counter)))
-            counter += 1
+            
 
     if args.save_off_files:
         shutil.rmtree("./tmp")
@@ -212,5 +218,6 @@ if __name__ == '__main__':
     parser.add_argument('--save_off_files', action=ap.BooleanOptionalAction)
     parser.add_argument('--save_obj_files', action=ap.BooleanOptionalAction)
     parser.add_argument('--visualize', action=ap.BooleanOptionalAction)
+    parser.add_argument('--start_idx', type=int, default=0)
     args = parser.parse_args()
     main(args)
