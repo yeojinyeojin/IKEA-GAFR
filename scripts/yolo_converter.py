@@ -1,5 +1,6 @@
 import json
 import os
+import argparse as ap
 
 def create_if_empty(path):
     if not os.path.exists(path):
@@ -8,12 +9,18 @@ def create_if_empty(path):
 
 
 if __name__ == '__main__':
-    labels_dir_path = "../dataset/labels"
+    parser = ap.ArgumentParser()
+    parser.add_argument("--dataset_path", type=str, default="../dataset")
+    args = parser.parse_args()
+
+    labels_dir_path = os.path.join(args.dataset_path, "labels")
+    #labels_dir_path = "../dataset/labels"
 
     with open("../annotator/ikea_od_two.json", 'r') as f:
         vgg_annots = json.load(f)
 
-    with open("../dataset/ind_map.json", 'r') as f:
+    with open(os.path.join(args.dataset_path, "ind_map.json"), 'r') as f:
+    #with open("../dataset/ind_map.json", 'r') as f:
         ind_hashmap = json.load(f)
 
     start_id = 0  # inclusive

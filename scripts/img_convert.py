@@ -2,6 +2,7 @@ import os
 import PIL
 import json
 import pathlib
+import argparse as ap
 
 from pdf2image import convert_from_path
 from pdf2image.exceptions import (
@@ -18,8 +19,11 @@ def create_if_empty(path):
 
 
 if __name__ == '__main__':
-    pdf_paths = sorted(list(pathlib.Path('../dataset/ikea_man/pdfs').glob('**/*.pdf')))
-    create_if_empty("../dataset/images")
+    parser = ap.ArgumentParser()
+    parser.add_argument("--dataset_path", type=str, default="../dataset")
+    args = parser.parse_args()
+    pdf_paths = sorted(list(pathlib.Path(os.path.join(args.dataset_path, "pdfs")).glob('**/*.pdf')))
+    create_if_empty(os.path.join(args.dataset_path, "images"))
 
     ind_hashmap = {}
     running_ctr = 0
@@ -37,7 +41,8 @@ if __name__ == '__main__':
         for i, img in enumerate(images):
             w, h = img.size
             img_name = f"{running_ctr:05d}.png"
-            img.save(f"../dataset/images/{img_name}")
+            img.save(os.path.join(args.dataset_path, "images", img_name))
+            #img.save(f"../../dataset/images/{img_name}")
             ind_hashmap[img_name] = {
                 "class_name": class_name,
                 "model_name": model_name,
@@ -54,5 +59,6 @@ if __name__ == '__main__':
         _prev_model_name = model_name
         _prev_page_end = i + 1
 
-    with open("../dataset/ind_map.json", "w") as f:
+    with open(os.path.join(args.dataset_path, "ind_map.json"), "w") as f:
+    #with open("../../dataset/ind_map.json", "w") as f:
         json.dump(ind_hashmap, f, indent=6)

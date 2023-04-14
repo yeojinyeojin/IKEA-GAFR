@@ -64,18 +64,19 @@ class IKEAManualStep(Dataset):
         
         self.imgdir = os.path.join(datadir, "images")
         self.imgpaths = sorted(os.listdir(self.imgdir))
-        self.img_metadata = json.load(os.path.join(datadir, "ind_map.json"))
+        self.img_metadata = json.load(open(os.path.join(datadir, "ind_map.json")))
 
         self.labeldir = os.path.join(datadir, "labels")
-        self.labelpaths = sorted(os.listdir(self.labels))
+        self.labelpaths = sorted(os.listdir(self.labeldir))
 
         self.gt_voxels = read_hdf5(os.path.join(datadir, "off_models_32_x_32", "output.h5"))
         #self.modelpaths = glob(f"selg.modeldir}/**/*.obj", recursive=True)
-        self.modelpaths = sorted(os.listdir(self.modeldir))
+        #self.modelpaths = sorted(os.listdir(self.gt_voxels))
 
         self.imgs = []
+        counter = 0
         for imgpath, labelpath in zip(self.imgpaths, self.labelpaths):
-            img = Image.open(os.path.join(self.imgdir, imgpath))
+            img = cv2.imread((os.path.join(self.imgdir, imgpath)))
             img_data = self.img_metadata[imgpath]
             h, w = img_data["img_h"], img_data["img_w"]
 
@@ -89,17 +90,23 @@ class IKEAManualStep(Dataset):
                         bbox_w = line[3]
                         bbox_h = line[4]
 
-                        start_x = np.floor(w*(bbox_x_center - bbox_w/2)).astype(int)
-                        start_y = np.floor(h*(bbox_y_center - bbox_h/2)).astype(int)
+                        start_x = torch.floor(w*(bbox_x_center - bbox_w/2)).to(int).item()
+                        start_y = torch.floor(h*(bbox_y_center - bbox_h/2)).to(int).item()
 
-                        end_x = np.floor(w*(bbox_y_center + bbox_w/2)).astype(int)
-                        end_y = np.floor(h*(bbox_y_center + bbox_h/2)).astype(int)
+                        end_x = torch.floor(w*(bbox_x_center + bbox_w/2)).to(int).item()
+                        end_y = torch.floor(h*(bbox_y_center + bbox_h/2)).to(int).item()
+                        #print("Y: ", "Image Height: ", h, "Start: ", start_y, "End: ", end_y)
+                        #print("X: ", "Image Width: ", w, "Start: ", start_x, "End; ", end_x)
+                        #print()
 
-                        img = img[start_y: end_y, start_x: end_x]
+                        img_curr = img[start_y: end_y, start_x: end_x]
+                        
+                        img_curr = Image.fromarray(img_curr)
                         if transforms is not None:
-                            img = transforms(img)
+                            img_curr = transforms(img_curr)
 
-                        self.imgs.append(img)
+                        self.imgs.append(img_curr)
+                        counter += 1
 
     def __len__(self):
         return len(self.imgs)
@@ -107,7 +114,7 @@ class IKEAManualStep(Dataset):
     def __getitem__(self, idx):
         dic = {
             'image': self.imgs[idx],
-            'voxels': self.voxels[idx],
+            'voxels': self.gt_voxels[idx],
         }
         
         return dic

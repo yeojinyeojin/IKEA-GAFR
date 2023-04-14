@@ -34,8 +34,8 @@ def parse_args():
     parser.add_argument('--num_workers', default=0, type=str)
     parser.add_argument('--lr', default=4e-4, type=str)
     parser.add_argument('--train_test_split_ratio', default=0.7, type=float)
-    parser.add_argument('--resize_w', default=640, type=int)
-    parser.add_argument('--resize_h', default=480, type=int)
+    parser.add_argument('--resize_w', default=224, type=int)
+    parser.add_argument('--resize_h', default=224, type=int)
     
     # Logging parameters
     parser.add_argument('--log_freq', default=1000, type=str)
@@ -47,13 +47,13 @@ def parse_args():
     parser.add_argument('--load_checkpoint', default=None, type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
-    parser.add_argument('--data_dir', type=str, default='./dataset')
+    parser.add_argument('--data_dir', type=str, default='../dataset')
     
     return parser.parse_args()
 
 def preprocess(feed_dict, args):
     #TODO: adjust the way data are loaded & formatted
-    images = feed_dict['images'].squeeze(1)
+    images = feed_dict['image'].squeeze(1)
     voxels = feed_dict['voxels'].float()
     ground_truth_3d = voxels
     
@@ -97,7 +97,6 @@ def main(args):
     transform = transforms.Compose([
         transforms.Resize(tuple((args.resize_w, args.resize_h))),
         transforms.ToTensor()
-        
     ]) #TODO: normalize?
     dataset = IKEAManualStep(args.data_dir, transform)
     train_set, val_set = torch.utils.data.random_split(dataset, [args.train_test_split_ratio, 1-args.train_test_split_ratio])
@@ -143,7 +142,7 @@ def main(args):
         images_gt, ground_truth_3d = preprocess(feed_dict, args)
         read_time = time.time() - read_start_time
 
-        prediction_3d = model(images_gt, args)
+        prediction_3d = model(images_gt, args).squeeze()
 
         loss = calculate_loss(prediction_3d, ground_truth_3d)
 
@@ -162,7 +161,7 @@ def main(args):
                 'epoch': epoch,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict()
-                }, f'checkpoint_{epoch}.pth')
+                }, os.path.join(args.checkpoint_dir, 'checkpoint_{}.pth'.format(epoch)))
 
         print("[%4d/%4d]; ttime: %.0f (%.2f, %.2f); loss: %.3f" % (epoch, args.num_epochs, total_time, read_time, iter_time, loss_vis))
 
