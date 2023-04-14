@@ -12,11 +12,11 @@ if __name__ == '__main__':
     with open("../annotator/ikea_od_two.json", 'r') as f:
         annot_1 = json.load(f)
 
-    with open("../annotator/ikea_od_two_3.json", 'r') as f:
+    with open("../annotator/ikea_od_two_67.json", 'r') as f:
         annot_2 = json.load(f)
 
-    annot_2_start = 500
-    annot_2_end = 600
+    annot_2_start = 600
+    annot_2_end = 700
 
     keyset = annot_2['_via_img_metadata'].keys()
     for ind in range(annot_2_start, annot_2_end + 1):

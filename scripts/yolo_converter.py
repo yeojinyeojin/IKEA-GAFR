@@ -17,7 +17,7 @@ if __name__ == '__main__':
         ind_hashmap = json.load(f)
 
     start_id = 0  # inclusive
-    end_id = 600  # inclusive
+    end_id = 700  # inclusive
 
     img_metadata = vgg_annots['_via_img_metadata']
     create_if_empty(labels_dir_path)

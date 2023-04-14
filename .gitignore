@@ -11,3 +11,4 @@ dataset/images_masks
 dataset/images_full
 dataset/labels
 cad_models/
+*.zip
