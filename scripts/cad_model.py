@@ -118,6 +118,10 @@ def main(args):
                 continue
             elif counter > (args.start_idx + 130):
                 return
+
+            if args.end_idx:
+                if counter > args.end_idx:
+                    return
             print(f'Model # {counter}')
             model_verts = None
             model_faces = None
@@ -202,8 +206,11 @@ def main(args):
                 scene.show()
                 input("Close viz window and press enter to continue to next sample...")
             
-            # off_to_obj(os.path.join(dataset_path, "gt_voxels_32_x_32", "{:05d}.off".format(counter)))
-            # off_to_obj(os.path.join(dataset_path, "off_models_32_x_32", "{:05d}.off".format(counter)))
+             #off_to_obj(os.path.join(dataset_path, "gt_voxels_32_x_32", "{:05d}.off".format(counter)))
+             #off_to_obj(os.path.join(dataset_path, "off_models_32_x_32", "{:05d}.off".format(counter)))
+            #off_to_obj(os.path.join(dataset_path, "pix2vox_out_00000", "{:05d}.off".format(counter)))
+            #off_to_obj(os.path.join(dataset_path, "pix2vox_out_09000", "{:05d}.off".format(counter)))
+            off_to_obj(os.path.join(dataset_path, "pix2vox_out_09999", "{:05d}.off".format(counter)))
             
 
     if args.save_off_files:
@@ -219,5 +226,6 @@ if __name__ == '__main__':
     parser.add_argument('--save_obj_files', action=ap.BooleanOptionalAction)
     parser.add_argument('--visualize', action=ap.BooleanOptionalAction)
     parser.add_argument('--start_idx', type=int, default=0)
+    parser.add_argument('--end_idx', type=int, default=None)
     args = parser.parse_args()
     main(args)
