@@ -10,6 +10,7 @@ dataset/images_prev
 dataset/images_masks
 dataset/images_full
 dataset/labels
+dataset/r2n2_shapenet_dataset
 cad_models/
 logs/
 checkpoints/
