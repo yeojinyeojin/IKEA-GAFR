@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision import models as torchvision_models
 import pytorch3d
+import h5py
 
 from model import Pix2Voxel
 from train_utils import create_dir
@@ -29,17 +30,20 @@ def parse_args():
     parser.add_argument('--model', default='pix2vox', type=str, help="architecture for 3D reconstruction")
     
     # Training parameters
-    parser.add_argument('--num_epochs', default=10000, type=str)
+    parser.add_argument('--num_epochs', default=10000, type=int)
     parser.add_argument('--batch_size', default=32, type=int)
-    parser.add_argument('--num_workers', default=0, type=str)
+    parser.add_argument('--num_workers', default=2, type=int)
     parser.add_argument('--lr', default=4e-4, type=str)
     parser.add_argument('--train_test_split_ratio', default=0.7, type=float)
     parser.add_argument('--resize_w', default=224, type=int)
     parser.add_argument('--resize_h', default=224, type=int)
+    parser.add_argument('--use_line_seg', action=argparse.BooleanOptionalAction)
+    parser.add_argument('--use_seg_mask', action=argparse.BooleanOptionalAction)
     
     # Logging parameters
     parser.add_argument('--log_freq', default=1000, type=str)
     parser.add_argument('--save_freq', default=500, type=int)    
+    parser.add_argument('--eval_freq', default=1000, type=int)
     
     parser.add_argument('--device', default='cuda', type=str) 
     
@@ -47,19 +51,20 @@ def parse_args():
     parser.add_argument('--load_checkpoint', default=None, type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
-    parser.add_argument('--data_dir', type=str, default='../dataset')
+    parser.add_argument('--dataset_path', type=str, default='../dataset')
     
     return parser.parse_args()
 
 def preprocess(feed_dict, args):
     #TODO: adjust the way data are loaded & formatted
+    image_names = torch.tensor(feed_dict['image_num']).reshape(-1, 1)
     images = feed_dict['image'].squeeze(1)
     voxels = feed_dict['voxels'].float()
     ground_truth_3d = voxels
     
-    return images.to(args.device), ground_truth_3d.to(args.device)
+    return image_names.to(args.device), images.to(args.device), ground_truth_3d.to(args.device)
 
-def calculate_loss(voxel_src, voxel_tgt):
+def calculate_voxel_loss(voxel_src, voxel_tgt):
     voxel_src = torch.clip(voxel_src, min=0, max=1)
     voxel_tgt = torch.clip(voxel_tgt, min=0, max=1)
     loss = torch.nn.BCELoss()(voxel_src, voxel_tgt)
@@ -67,17 +72,16 @@ def calculate_loss(voxel_src, voxel_tgt):
     return loss
     
 def main(args):
-    
     ## Create directories for checkpoints and tensorboard logs
-    args.checkpoint_dir = f"{args.checkpoint_dir}/{args.model}"
-    args.logs_dir = f"{args.logs_dir}/{args.model}"
+    args.checkpoint_dir = os.path.join(args.checkpoint_dir, args.model)
+    args.logs_dir = os.path.join(args.logs_dir, args.model)
     create_dir(args.checkpoint_dir)
     create_dir(args.logs_dir)
     
     ## Tensorboard Logger
     dt = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    create_dir(f'{args.logs_dir}/{dt}')
-    writer = SummaryWriter(f'{args.logs_dir}/{dt}')
+    create_dir(os.path.join(args.logs_dir, dt))
+    writer = SummaryWriter(os.path.join(args.logs_dir, dt))
     
     ## Load model & optimizer
     if args.model == 'pix2vox':
@@ -98,34 +102,26 @@ def main(args):
         transforms.Resize(tuple((args.resize_w, args.resize_h))),
         transforms.ToTensor()
     ]) #TODO: normalize?
-    dataset = IKEAManualStep(args.data_dir, transform)
-    train_set, val_set = torch.utils.data.random_split(dataset, [args.train_test_split_ratio, 1-args.train_test_split_ratio])
+    args.transforms = transform
+
+    dataset = IKEAManualStep(args)
+    train_set, test_set = torch.utils.data.random_split(dataset, [args.train_test_split_ratio, 1-args.train_test_split_ratio])
+
     train_dataloader = DataLoader(dataset=train_set, 
                               batch_size=args.batch_size, 
                               shuffle=True, 
                               num_workers=args.num_workers)
-    val_dataloader = DataLoader(dataset=val_set, 
+
+    test_dataloader = DataLoader(dataset=test_set, 
                             batch_size=args.batch_size, 
                             shuffle=True, 
                             num_workers=args.num_workers)
+
     train_loader = iter(train_dataloader)
+    test_loader = test_dataloader
     
-    print (f"Successfully loaded data: train_set {len(train_set)} | val_set {len(val_set)}")
-    
+    print (f"Successfully loaded data: train_set {len(train_set)} | test_set {len(test_set)}")
     print("Starting training!")
-    # for epoch in range(args.num_epochs):
-        
-    #     ## Train
-    #     train_loss = train(train_loader, model, optimizer, epoch, args, writer)
-        
-    #     ## Evaluate
-    #     val_loss = validate(val_loader, model, epoch, args, writer)
-        
-    #     print ("epoch: {}   train loss: {:.4f}   val loss: {:.4f}".format(epoch, train_loss, val_loss))
-        
-    #     if epoch % args.checkpoint_every == 0:
-    #         print ("checkpoint saved at epoch {}".format(epoch))
-    #         save_checkpoint(epoch=epoch, model=model, args=args, best=False)
     
     start_epoch = 0
     start_time = time.time()
@@ -139,12 +135,12 @@ def main(args):
 
         feed_dict = next(train_loader)
 
-        images_gt, ground_truth_3d = preprocess(feed_dict, args)
+        _, images_gt, ground_truth_3d = preprocess(feed_dict, args)
         read_time = time.time() - read_start_time
 
         prediction_3d = model(images_gt, args).squeeze()
 
-        loss = calculate_loss(prediction_3d, ground_truth_3d)
+        loss = calculate_voxel_loss(prediction_3d, ground_truth_3d)
 
         optimizer.zero_grad()
         loss.backward()
@@ -155,7 +151,7 @@ def main(args):
 
         loss_vis = loss.cpu().item()
 
-        if (epoch % args.save_freq) == 0:
+        if ((epoch + 1) % args.save_freq) == 0:
             print("saved at ", epoch)
             torch.save({
                 'epoch': epoch,
@@ -165,6 +161,34 @@ def main(args):
 
         print("[%4d/%4d]; ttime: %.0f (%.2f, %.2f); loss: %.3f" % (epoch, args.num_epochs, total_time, read_time, iter_time, loss_vis))
 
+        if ((epoch + 1) % args.eval_freq) == 0:
+            print("Evaluating at ", epoch)
+            model.eval()
+            with torch.no_grad():
+                num_batches = 0
+                total_loss = 0
+                predictions = None
+                image_names = None
+                for batch in test_loader:
+                    image_test_names, images_test, ground_truth_3d = preprocess(feed_dict, args)
+                    prediction_3d = model(images_test, args).squeeze()
+                    if predictions is None:
+                        predictions = prediction_3d
+                        image_names = image_test_names
+                    else:
+                        predictions = torch.cat([predictions, prediction_3d], dim=0)
+                        image_names = torch.cat([image_names, image_test_names], dim=0)
+                    num_batches += 1
+                    total_loss += calculate_voxel_loss(prediction_3d, ground_truth_3d).cpu().item()
+
+                if num_batches != 0:
+                    total_loss /= num_batches
+                print("Loss at epoch {}: {}".format(epoch, total_loss))
+                np.savetxt(os.path.join(args.logs_dir, dt, 'output_{:05d}_names.txt'.format(epoch)), image_names.cpu().numpy(), fmt="%d")
+                output_file = h5py.File(os.path.join(args.logs_dir, dt, 'output_{:05d}.h5'.format(epoch)), 'w')
+                output_file.create_dataset('tensor', data=predictions.cpu().numpy())
+                output_file.close()
+        model.train()
     print('Done!')
     
 
