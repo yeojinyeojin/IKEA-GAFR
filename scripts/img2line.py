@@ -6,6 +6,7 @@ from glob import glob
 
 import cv2
 import torch
+import numpy as np
 from pytorch3d.datasets.r2n2.utils import (
     BlenderCamera,
     align_bbox,
@@ -16,8 +17,17 @@ from pytorch3d.datasets.r2n2.utils import (
 from pytorch3d.structures import Meshes
 from pytorch3d.io import load_obj, save_obj
 from pytorch3d.transforms import euler_angles_to_matrix, Rotate
-from pytorch3d.renderer import TexturesVertex, look_at_view_transform
-from pytorch3d.renderer.cameras import FoVPerspectiveCameras
+from pytorch3d.renderer import (
+    TexturesVertex, 
+    look_at_view_transform, 
+    FoVPerspectiveCameras, 
+    PointLights,
+    RasterizationSettings,
+    MeshRenderer,
+    MeshRasterizer,
+    HardPhongShader
+)
+from pytorch3d.renderer.cameras import look_at_view_transform
 from pytorch3d.vis.plotly_vis import plot_scene
 
 def parse_args():
@@ -30,37 +40,79 @@ def parse_args():
     
     parser.add_argument('--sobel', action='store_true', default=False)
     parser.add_argument('--rotate', action='store_true', default=True)
-    parser.add_argument('--visualize', action='store_true', default=True)
+    parser.add_argument('--visualize', action='store_true', default=False)
+    parser.add_argument('--num_rotate', type=int, default=5)
     
     return parser.parse_args()
 
-def rotate(datadir, outdir, visualize):
-    ROT_ANGLES = [30, 60, 90]
+def get_mesh_renderer(image_size=512, lights=None, device=None):
+    """
+    Returns a Pytorch3D Mesh Renderer.
+
+    Args:
+        image_size (int): The rendered image size.
+        lights: A default Pytorch3D lights object.
+        device (torch.device): The torch device to use (CPU or GPU). If not specified,
+            will automatically use GPU if available, otherwise CPU.
+    """
+    if device is None:
+        if torch.cuda.is_available():
+            device = torch.device("cuda:0")
+        else:
+            device = torch.device("cpu")
+    raster_settings = RasterizationSettings(
+        image_size=image_size, blur_radius=0.0, faces_per_pixel=1,
+    )
+    renderer = MeshRenderer(
+        rasterizer=MeshRasterizer(raster_settings=raster_settings),
+        shader=HardPhongShader(device=device, lights=lights),
+    )
+    return renderer
+
+def rotate(datadir, outdir, num_rotate=5, visualize=False):
     voxpaths = glob(f"{datadir}/**/*.obj", recursive=True)
     
-    for voxpath in voxpaths:
+    lights = PointLights(location=[[0, 0, -3]])
+    renderer = get_mesh_renderer(image_size=224)
+    
+    angles = torch.bernoulli(torch.rand(num_rotate*len(voxpaths), 3))
+    angles *= torch.randint(0, 360, (num_rotate*len(voxpaths), 3))
+    angles = angles.int()
+    
+    for i, voxpath in enumerate(voxpaths):
         obj_name = voxpath.split('/')[-2]
         
         verts, faces, _ = load_obj(voxpath)
         faces = faces.verts_idx
         
-        for angle in ROT_ANGLES:
+        for angle in angles[i*num_rotate:i*num_rotate+num_rotate]:
             # euler = torch.Tensor([0, 0, 90]) / 180 * torch.pi
-            euler = torch.Tensor([angle, angle, angle]) / 180 * torch.pi
+            euler = angle / 180 * torch.pi
             rot_mat = euler_angles_to_matrix(euler, "XYZ")
             R = Rotate(rot_mat)
             verts_rot = R.transform_points(verts)
             
-            output_path = f"{outdir}/{obj_name}.obj"
-            save_obj(f=output_path, verts=verts_rot, faces=faces)
+            # output_path = f"{outdir}/{obj_name}.obj"
+            # save_obj(f=output_path, verts=verts_rot, faces=faces)
+            
+            cameras = FoVPerspectiveCameras(
+                R=torch.eye(3).unsqueeze(0),
+                T=torch.tensor([[0, 0, 1]]), 
+                fov=60
+                )
+            textures = torch.ones_like(verts_rot) * torch.tensor([[1.0, 0.0, 0.0]])
+            mesh = Meshes(
+                    verts=verts_rot.unsqueeze(0),
+                    faces=faces.unsqueeze(0),
+                    textures=TexturesVertex(textures.unsqueeze(0))
+                )
+            rend = renderer(mesh.cuda(), cameras=cameras.cuda(), lights=lights.cuda())
+            rend = rend.detach().cpu().numpy()[0, ..., :3]
+            rend *= 255
+            
+            cv2.imwrite(f"{outdir}/{obj_name}_x{angle[0]}_y{angle[1]}_z{angle[2]}.png", rend)
             
             if visualize:
-                textures = torch.ones_like(verts_rot)*torch.tensor([[1.0, 0.0, 0.0]])
-                mesh = Meshes(
-                        verts=verts_rot.unsqueeze(0),
-                        faces=faces.unsqueeze(0),
-                        textures=TexturesVertex(textures.unsqueeze(0))
-                    )
                 
                 gt_vox_verts, gt_vox_face_data, _ = load_obj(voxpath)
                 gt_vox_verts += torch.tensor([[1.0, 0.0, 0.0]])
@@ -113,7 +165,7 @@ def main(args):
         rotdir = f"{rootdir}/{datasetname}_rotate"
         os.makedirs(rotdir, exist_ok=True)
         
-        imgdir = rotate(args.vox_dir, rotdir, args.visualize)
+        imgdir = rotate(args.vox_dir, rotdir, args.num_rotate, args.visualize)
     else:
         imgdir = args.img_dir
     
