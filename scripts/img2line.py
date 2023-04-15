@@ -30,10 +30,11 @@ def parse_args():
     
     parser.add_argument('--sobel', action='store_true', default=False)
     parser.add_argument('--rotate', action='store_true', default=True)
+    parser.add_argument('--visualize', action='store_true', default=True)
     
     return parser.parse_args()
 
-def rotate(datadir, outdir):
+def rotate(datadir, outdir, visualize):
     ROT_ANGLES = [30, 60, 90]
     voxpaths = glob(f"{datadir}/**/*.obj", recursive=True)
     
@@ -44,18 +45,40 @@ def rotate(datadir, outdir):
         faces = faces.verts_idx
         
         for angle in ROT_ANGLES:
-            rot_mat = euler_angles_to_matrix(math.radians(angle))
+            # euler = torch.Tensor([0, 0, 90]) / 180 * torch.pi
+            euler = torch.Tensor([angle, angle, angle]) / 180 * torch.pi
+            rot_mat = euler_angles_to_matrix(euler, "XYZ")
             R = Rotate(rot_mat)
             verts_rot = R.transform_points(verts)
             
-            textures = torch.ones_like(verts_rot)*torch.tensor([[0.0, 1.0, 0.0]])
-            mesh = Meshes(
-                    verts=verts_rot.unsqueeze(0),
-                    faces=faces.verts_idx.unsqueeze(0),
-                    textures=TexturesVertex(textures.unsqueeze(0))
-                )
             output_path = f"{outdir}/{obj_name}.obj"
-            save_obj(f=output_path, verts=verts, faces=faces)
+            save_obj(f=output_path, verts=verts_rot, faces=faces)
+            
+            if visualize:
+                textures = torch.ones_like(verts_rot)*torch.tensor([[1.0, 0.0, 0.0]])
+                mesh = Meshes(
+                        verts=verts_rot.unsqueeze(0),
+                        faces=faces.unsqueeze(0),
+                        textures=TexturesVertex(textures.unsqueeze(0))
+                    )
+                
+                gt_vox_verts, gt_vox_face_data, _ = load_obj(voxpath)
+                gt_vox_verts += torch.tensor([[1.0, 0.0, 0.0]])
+                gt_textures = torch.ones_like(gt_vox_verts) * torch.tensor([[0.0, 1.0, 0.0]])
+                gt_mesh = Meshes(
+                    verts=gt_vox_verts.unsqueeze(0),
+                    faces=gt_vox_face_data.verts_idx.unsqueeze(0),
+                    textures=TexturesVertex(gt_textures.unsqueeze(0))
+                )
+                
+                scene = plot_scene({
+                    "Figure1": {
+                        "Rotated Mesh": mesh,
+                        "GT Mesh": gt_mesh
+                    }
+                })
+                scene.show()
+                input("Close viz window and press enter to continue to next sample...")
 
     return outdir
     
@@ -90,7 +113,7 @@ def main(args):
         rotdir = f"{rootdir}/{datasetname}_rotate"
         os.makedirs(rotdir, exist_ok=True)
         
-        imgdir = rotate(args.vox_dir, rotdir)
+        imgdir = rotate(args.vox_dir, rotdir, args.visualize)
     else:
         imgdir = args.img_dir
     
