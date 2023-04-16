@@ -7,6 +7,7 @@ from glob import glob
 import cv2
 import torch
 import numpy as np
+from tqdm import tqdm
 from pytorch3d.datasets.r2n2.utils import (
     BlenderCamera,
     align_bbox,
@@ -29,6 +30,9 @@ from pytorch3d.renderer import (
 )
 from pytorch3d.renderer.cameras import look_at_view_transform
 from pytorch3d.vis.plotly_vis import plot_scene
+
+import warnings
+warnings.filterwarnings("ignore")
 
 def parse_args():
     
@@ -79,10 +83,22 @@ def rotate(datadir, outdir, num_rotate=5, visualize=False):
     angles *= torch.randint(0, 360, (num_rotate*len(voxpaths), 3))
     angles = angles.int()
     
-    for i, voxpath in enumerate(voxpaths):
+    for i, voxpath in tqdm(enumerate(voxpaths), total=len(voxpaths)):
         obj_name = voxpath.split('/')[-2]
         
-        verts, faces, _ = load_obj(voxpath)
+        if len(glob(f"home/ubuntu/IKEA/dataset/shapenet_rotate/{obj_name}*.png")) == 5:
+            continue
+        
+        if 'f3c0ab68f3dab6071b17743c18fb63dc' in voxpath or '2ae70fbab330779e3bff5a09107428a5' in voxpath or 'a8c0ceb67971d0961b17743c18fb63dc' in voxpath:
+            continue
+        
+        if not os.path.isfile(voxpath):
+            continue
+        
+        try:
+            verts, faces, _ = load_obj(voxpath)
+        except:
+            continue
         faces = faces.verts_idx
         
         for angle in angles[i*num_rotate:i*num_rotate+num_rotate]:
