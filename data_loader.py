@@ -31,7 +31,7 @@ from pytorch3d.datasets.r2n2.utils import (
 import utils_vox
 
 def read_hdf5(file, key = 'tensor'):
-    assert os.os.path.exists(file), 'file %s not found' % file
+    assert os.path.exists(file), 'file %s not found' % file
     h5f = h5py.File(file, 'r')
     assert key in h5f.keys(), 'key %s not found in file %s' % (key, file)
     gt_voxels = torch.from_numpy(h5f[key][()])
@@ -81,41 +81,41 @@ class IKEAManualStep(Dataset):
         datadir = args.dataset_path
         transforms = args.transforms
 
-        self.imgdir = os.os.path.join(datadir, "images") #Change to images/rgb/ later
+        self.imgdir = os.path.join(datadir, "images") #Change to images/rgb/ later
         self.imgpaths = sorted(os.listdir(self.imgdir))
-        self.img_metadata = json.load(open(os.os.path.join(datadir, "ind_map.json"))) #Gives image height/width and other useful info
+        self.img_metadata = json.load(open(os.path.join(datadir, "ind_map.json"))) #Gives image height/width and other useful info
 
-        self.labeldir = os.os.path.join(datadir, "labels")
+        self.labeldir = os.path.join(datadir, "labels")
         self.labelpaths = sorted(os.listdir(self.labeldir))
 
         if args.use_line_seg: #If we want to concatenate line segmentations to input
-            self.line_seg_dir = os.os.path.join(datadir, "images", "line_seg")
+            self.line_seg_dir = os.path.join(datadir, "images", "line_seg")
             self.line_seg_paths = sorted(os.listdir(self.line_seg_dir))
         
         if args.use_seg_mask: #If we want to concatenate segmentation masks to input
-            self.seg_mask_dir = os.os.path.join(datadir, "images", "mask")
+            self.seg_mask_dir = os.path.join(datadir, "images", "mask")
             self.seg_mask_paths = sorted(os.listdir(self.seg_mask_dir))
 
 
-        self.gt_voxels = read_hdf5(os.os.path.join(datadir, "off_models_32_x_32", "output.h5"))
+        self.gt_voxels = read_hdf5(os.path.join(datadir, "off_models_32_x_32", "output.h5"))
 
         self.imgs = []
         self.imgnums = []
 
         for imgpath, labelpath in zip(self.imgpaths, self.labelpaths):
-            img = cv2.imread((os.os.path.join(self.imgdir, imgpath)))
+            img = cv2.imread((os.path.join(self.imgdir, imgpath)))
 
             if args.use_line_seg:
-                line_seg_img = cv2.imread(os.os.path.join(self.line_seg_dir, imgpath))
+                line_seg_img = cv2.imread(os.path.join(self.line_seg_dir, imgpath))
                 img = np.dstack([img, line_seg_img]) #Stack RGB img and line segmentation depth-wise
             if args.use_seg_mask:
-                seg_mask_img = cv2.imread(os.os.path.join(self.seg_mask_dir, imgpath))
+                seg_mask_img = cv2.imread(os.path.join(self.seg_mask_dir, imgpath))
                 img = np.dstack([img, seg_mask_img]) #Stack RGB img and segmentation mask depth-wise
 
             img_data = self.img_metadata[imgpath]
             h, w = img_data["img_h"], img_data["img_w"]
 
-            with open(os.os.path.join(self.labeldir, labelpath)) as f: #Read in label txt file for specific image
+            with open(os.path.join(self.labeldir, labelpath)) as f: #Read in label txt file for specific image
                 for line in f.readlines(): #For each bbox in image
                     line = np.array(line.split(" ")).astype(np.float32).reshape(-1) # [class, x_c, y_c, w, h]
                     line = torch.from_numpy(line)
@@ -152,8 +152,8 @@ class IKEAManualStep(Dataset):
 
     def __getitem__(self, idx):
         dic = {
-            'image_num': self.imgnums[idx],
-            'image': self.imgs[idx],
+            'names': self.imgnums[idx],
+            'images': self.imgs[idx],
             'voxels': self.gt_voxels[idx],
         }
         
@@ -192,6 +192,7 @@ class R2N2(ShapeNetBase):  # pragma: no cover
         return_all_views: bool = True,
         return_voxels: bool = False,
         return_feats: bool = False,
+        return_RTK: bool = False,
         views_rel_path: str = "ShapeNetRendering",
         voxels_rel_path: str = "ShapeNetVoxels",
         load_textures: bool = False,
@@ -213,9 +214,9 @@ class R2N2(ShapeNetBase):  # pragma: no cover
             return_feats(bool): Indicator of whether image features from a pretrained resnet18 
                 are also returned in the dataloader or not
             views_rel_path: path to rendered views within the r2n2_dir. If not specified,
-                the renderings are assumed to be at os.os.path.join(rn2n_dir, "ShapeNetRendering").
+                the renderings are assumed to be at os.path.join(rn2n_dir, "ShapeNetRendering").
             voxels_rel_path: path to rendered views within the r2n2_dir. If not specified,
-                the renderings are assumed to be at os.os.path.join(rn2n_dir, "ShapeNetVoxels").
+                the renderings are assumed to be at os.path.join(rn2n_dir, "ShapeNetVoxels").
             load_textures: Boolean indicating whether textures should loaded for the model.
                 Textures will be of type TexturesAtlas i.e. a texture map per face.
             texture_resolution: Int specifying the resolution of the texture map per face
@@ -231,12 +232,13 @@ class R2N2(ShapeNetBase):  # pragma: no cover
         self.load_textures = load_textures
         self.texture_resolution = texture_resolution
         self.return_feats = return_feats
+        self.return_RTK = return_RTK
         # Examine if split is valid.
         if split not in ["train", "val", "test"]:
             raise ValueError("split has to be one of (train, val, test).")
         # Synset dictionary mapping synset offsets in R2N2 to corresponding labels.
         with open(
-            os.os.path.join(SYNSET_DICT_DIR, "r2n2_synset_dict.json"), "r"
+            os.path.join(SYNSET_DICT_DIR, "r2n2_synset_dict.json"), "r"
         ) as read_dict:
             self.synset_dict = json.load(read_dict)
         # Inverse dictionary mapping synset labels to corresponding offsets.
@@ -248,7 +250,7 @@ class R2N2(ShapeNetBase):  # pragma: no cover
 
         self.return_images = True
         # Check if the folder containing R2N2 renderings is included in r2n2_dir.
-        if not os.os.path.isdir(os.os.path.join(r2n2_dir, views_rel_path)):
+        if not os.path.isdir(os.path.join(r2n2_dir, views_rel_path)):
             self.return_images = False
             msg = (
                 "%s not found in %s. R2N2 renderings will "
@@ -399,7 +401,7 @@ class R2N2(ShapeNetBase):  # pragma: no cover
         model["label"] = self.synset_dict[model["synset_id"]]
 
         model["images"] = None
-        images, feats, Rs, Ts, voxel_RTs = [], [], [], [], []
+        img_names, images, feats, Rs, Ts, voxel_RTs = [], [], [], [], [], []
         # Retrieve R2N2's renderings if required.
         if self.return_images:
             rendering_path = os.path.join(
@@ -413,41 +415,52 @@ class R2N2(ShapeNetBase):  # pragma: no cover
             # Read metadata file to obtain params for calibration matrices.
             with open(os.path.join(rendering_path, "rendering_metadata.txt"), "r") as f:
                 metadata_lines = f.readlines()
-            for i in model_views:
+            for i, name in enumerate(model_views):
                 # Read image.
-                image_path = os.path.join(rendering_path, "%02d.png" % i)
+                image_path = os.path.join(rendering_path, f"{name}.png")
+                # image_path = os.path.join(rendering_path, "%02d.png" % i)
                 raw_img = Image.open(image_path)
+                if raw_img.size != (137, 137):
+                    raw_img = raw_img.resize((137, 137))
+                if np.array(raw_img).ndim != 3:
+                    raw_img = cv2.cvtColor(np.array(raw_img), cv2.COLOR_GRAY2RGB)
                 image = torch.from_numpy(np.array(raw_img) / 255.0)[..., :3]
+                
+                img_names.append(int(name))
                 images.append(image.to(dtype=torch.float32))
-                feats.append(all_feats[i].to(dtype=torch.float32))
+                if self.return_feats:
+                    feats.append(all_feats[i].to(dtype=torch.float32))
 
-                # Get camera calibration.
-                azim, elev, yaw, dist_ratio, fov = [
-                    float(v) for v in metadata_lines[i].strip().split(" ")
-                ]
-                dist = dist_ratio * MAX_CAMERA_DISTANCE
-                # Extrinsic matrix before transformation to PyTorch3D world space.
-                RT = compute_extrinsic_matrix(azim, elev, dist)
-                R, T = self._compute_camera_calibration(RT)
-                Rs.append(R)
-                Ts.append(T)
-                voxel_RTs.append(RT)
+                if self.return_RTK:
+                    # Get camera calibration.
+                    azim, elev, yaw, dist_ratio, fov = [
+                        float(v) for v in metadata_lines[i].strip().split(" ")
+                    ]
+                    dist = dist_ratio * MAX_CAMERA_DISTANCE
+                    # Extrinsic matrix before transformation to PyTorch3D world space.
+                    RT = compute_extrinsic_matrix(azim, elev, dist)
+                    R, T = self._compute_camera_calibration(RT)
+                    Rs.append(R)
+                    Ts.append(T)
+                    voxel_RTs.append(RT)
 
             # Intrinsic matrix extracted from the Blender with slight modification to work with
             # PyTorch3D world space. Taken from meshrcnn codebase:
             # https://github.com/facebookresearch/meshrcnn/blob/main/shapenet/utils/coords.py
-            K = torch.tensor(
-                [
-                    [2.1875, 0.0, 0.0, 0.0],
-                    [0.0, 2.1875, 0.0, 0.0],
-                    [0.0, 0.0, -1.002002, -0.2002002],
-                    [0.0, 0.0, 1.0, 0.0],
-                ]
-            )
+            model["names"] = np.stack(img_names)
             model["images"] = torch.stack(images)
-            model["R"] = torch.stack(Rs)
-            model["T"] = torch.stack(Ts)
-            model["K"] = K.expand(len(model_views), 4, 4)
+            if self.return_RTK:
+                K = torch.tensor(
+                    [
+                        [2.1875, 0.0, 0.0, 0.0],
+                        [0.0, 2.1875, 0.0, 0.0],
+                        [0.0, 0.0, -1.002002, -0.2002002],
+                        [0.0, 0.0, 1.0, 0.0],
+                    ]
+                )
+                model["R"] = torch.stack(Rs)
+                model["T"] = torch.stack(Ts)
+                model["K"] = K.expand(len(model_views), 4, 4)
             if self.return_feats:
                 model["feats"] = torch.stack(feats)
 
@@ -484,9 +497,10 @@ class R2N2(ShapeNetBase):  # pragma: no cover
         rand_view = random.randint(0,num_views-1)
 
         model['images'] = model['images'][rand_view]
-        model['R'] = model['R'][rand_view]
-        model['T'] = model['T'][rand_view]
-        model['K'] = model['K'][rand_view]
+        if self.return_RTK:
+            model['R'] = model['R'][rand_view]
+            model['T'] = model['T'][rand_view]
+            model['K'] = model['K'][rand_view]
         if self.return_feats:
             model["feats"] = model["feats"][rand_view]
 

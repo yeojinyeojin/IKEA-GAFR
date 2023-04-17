@@ -11,8 +11,9 @@ dataset/images_masks
 dataset/images_full
 dataset/labels
 dataset/r2n2_shapenet_dataset
-dataset/r2n2_shapenet_line
+dataset/r2n2_shapenet_original_line
 dataset/shapenet_rotate
+dataset/shapenet_rotate_edge
 cad_models/
 logs/
 checkpoints/

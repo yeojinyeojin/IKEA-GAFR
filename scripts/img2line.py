@@ -38,14 +38,18 @@ def parse_args():
     
     parser = argparse.ArgumentParser('Image2LineDrawing', add_help=False)
     
-    parser.add_argument('--img_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2')
+    # parser.add_argument('--img_dir', type=str, default='../dataset/shapenet_rotate')
+    parser.add_argument('--img_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2/ShapeNetRendering/03001627')
+    # parser.add_argument('--img_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2')
     parser.add_argument('--vox_dir', type=str, default='../dataset/r2n2_shapenet_dataset/shapenet')
-    parser.add_argument('--out_dir', type=str, default='../dataset/r2n2_shapenet_line')
+    # parser.add_argument('--out_dir', type=str, default='../dataset/shapenet_rotate_edge')
+    # parser.add_argument('--out_dir', type=str, default='../dataset/r2n2_shapenet_rotate_line')
+    parser.add_argument('--out_dir', type=str, default='../dataset/r2n2_shapenet_original_line')
     
     parser.add_argument('--sobel', action='store_true', default=False)
-    parser.add_argument('--rotate', action='store_true', default=True)
+    parser.add_argument('--rotate', action='store_true', default=False)
+    parser.add_argument('--num_rotate', type=int, default=10)
     parser.add_argument('--visualize', action='store_true', default=False)
-    parser.add_argument('--num_rotate', type=int, default=5)
     
     return parser.parse_args()
 
@@ -73,11 +77,11 @@ def get_mesh_renderer(image_size=512, lights=None, device=None):
     )
     return renderer
 
-def rotate(datadir, outdir, num_rotate=5, visualize=False):
+def rotate(datadir, outdir, num_rotate=10, visualize=False):
     voxpaths = glob(f"{datadir}/**/*.obj", recursive=True)
     
     lights = PointLights(location=[[0, 0, -3]])
-    renderer = get_mesh_renderer(image_size=224)
+    renderer = get_mesh_renderer(image_size=137)
     
     angles = torch.bernoulli(torch.rand(num_rotate*len(voxpaths), 3))
     angles *= torch.randint(0, 360, (num_rotate*len(voxpaths), 3))
@@ -86,15 +90,12 @@ def rotate(datadir, outdir, num_rotate=5, visualize=False):
     for i, voxpath in tqdm(enumerate(voxpaths), total=len(voxpaths)):
         obj_name = voxpath.split('/')[-2]
         
-        if len(glob(f"home/ubuntu/IKEA/dataset/shapenet_rotate/{obj_name}*.png")) == 5:
-            continue
+        os.makedirs(f"{outdir}/{obj_name}", exist_ok=True)
         
-        if 'f3c0ab68f3dab6071b17743c18fb63dc' in voxpath or '2ae70fbab330779e3bff5a09107428a5' in voxpath or 'a8c0ceb67971d0961b17743c18fb63dc' in voxpath:
-            continue
+        # if len(glob(f"home/ubuntu/IKEA/dataset/shapenet_rotate/{obj_name}*.png")) == 5:
+        #     continue
         
-        if not os.path.isfile(voxpath):
-            continue
-        
+        # verts, faces, _ = load_obj(voxpath)
         try:
             verts, faces, _ = load_obj(voxpath)
         except:
@@ -126,7 +127,7 @@ def rotate(datadir, outdir, num_rotate=5, visualize=False):
             rend = rend.detach().cpu().numpy()[0, ..., :3]
             rend *= 255
             
-            cv2.imwrite(f"{outdir}/{obj_name}_x{angle[0]}_y{angle[1]}_z{angle[2]}.png", rend)
+            cv2.imwrite(f"{outdir}/{obj_name}/x{angle[0]}_y{angle[1]}_z{angle[2]}.png", rend)
             
             if visualize:
                 
@@ -150,26 +151,74 @@ def rotate(datadir, outdir, num_rotate=5, visualize=False):
 
     return outdir
     
-def get_contour_and_save(imgdir, rot=None):
-    imgpaths = glob(f"{imgdir}/**/*.png", recursive=True)
+def get_contour_and_save(imgdir, args):
+    dirpaths = glob(f"{imgdir}/*", recursive=True)
+    # imgpaths = glob(f"{imgdir}/**/*.png", recursive=True)
     
-    for imgpath in imgpaths:
-        obj_name = imgpath.split('/')[-3]
-        order = imgpath.split('/')[-1]
+    # for imgpath in tqdm(imgpaths, total=len(imgpaths)):
+    #     if 'r2n2' in os.path.basename(imgdir):
+    #         obj_name = imgpath.split('/')[-3]
+    #         order = imgpath.split('/')[-1][:-4]
+    #     elif 'shapenet' in os.path.basename(imgdir):
+    #         obj_name = imgpath.split('/')[-2]
+    #         order =  imgpath.split('/')[-1][:-4]
+    #         # obj_name = os.path.basename(imgpath).split('_')[0]
+    #         # order = os.path.basename(imgpath).replace(obj_name, '')[1:-4]
+        # obj_outdir = os.path.join(args.out_dir, obj_name)
+        # os.makedirs(obj_outdir, exist_ok=True)
         
-        img = cv2.imread(imgpath)
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        img_blur = cv2.GaussianBlur(img_gray, ksize=(3,3), sigmaX=cv2.BORDER_DEFAULT)
+        # img = cv2.imread(imgpath)
+        # img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # img_blur = cv2.GaussianBlur(img_gray, ksize=(3,3), sigmaX=cv2.BORDER_DEFAULT)
         
-        if args.sobel:
-            sobelx = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5)
-            sobely = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=5)
-            sobelxy = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5)
-            cv2.imwrite(f"{args.out_dir}/{obj_name}_{order}_sobel.png", sobelxy)
+        # if args.sobel:
+        #     sobelx = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5)
+        #     sobely = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=5)
+        #     sobelxy = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5)
+            
+        #     cv2.imwrite(os.path.join(obj_outdir, f"{order}_sobel.png"), sobelxy)
         
-        canny = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)
-        canny_inv = cv2.bitwise_not(canny)
-        cv2.imwrite(f"{args.out_dir}/{obj_name}_{order}_{rot}.png", canny_inv)
+        # canny = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)
+        # canny_inv = cv2.bitwise_not(canny)
+        
+        # cv2.imwrite(os.path.join(obj_outdir, f"{order}.png"), canny_inv)
+    
+    skip_cnt = 0
+    for dirpath in tqdm(dirpaths, total=len(dirpaths)):
+        
+        files = glob(f"{dirpath}/**/*.png", recursive=True)
+        if len(files) < 5 :
+            skip_cnt += 1
+            continue
+        
+        # if 'shapenet' in os.path.basename(imgdir):
+        obj_name = os.path.basename(os.path.normpath(dirpath))
+        
+        obj_outdir = os.path.join(args.out_dir, obj_name)
+        os.makedirs(obj_outdir, exist_ok=True)
+        
+        if args.rotate:
+            files = files[:5]
+        
+        for imgpath in files:
+            order = os.path.basename(imgpath)[:-4]
+            
+            img = cv2.imread(imgpath)
+            img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            img_blur = cv2.GaussianBlur(img_gray, ksize=(3,3), sigmaX=cv2.BORDER_DEFAULT)
+            
+            if args.sobel:
+                sobelx = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5)
+                sobely = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=5)
+                sobelxy = cv2.Sobel(src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5)
+                
+                cv2.imwrite(os.path.join(obj_outdir, f"{order}_sobel.png"), sobelxy)
+            
+            canny = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)
+            canny_inv = cv2.bitwise_not(canny)
+            
+            cv2.imwrite(os.path.join(obj_outdir, f"{order}.png"), canny_inv)
+    print("@@@ skip_cnt: ", skip_cnt)
 
 def main(args):
     
@@ -185,7 +234,7 @@ def main(args):
     else:
         imgdir = args.img_dir
     
-    get_contour_and_save(imgdir, rot=None)
+    get_contour_and_save(imgdir, args)
     
 
 if __name__ == "__main__":
