@@ -17,12 +17,24 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 from torchvision import models as torchvision_models
-import pytorch3d
 from  pytorch3d.datasets.r2n2.utils import collate_batched_R2N2
+from pytorch3d.io import load_obj, save_obj
+from pytorch3d.ops import cubify
+from pytorch3d.datasets.r2n2.utils import (
+    BlenderCamera,
+    align_bbox,
+    compute_extrinsic_matrix,
+    read_binvox_coords,
+    voxelize,
+)
+from pytorch3d.structures import Meshes
+from pytorch3d.renderer import TexturesVertex, look_at_view_transform
+from pytorch3d.vis.plotly_vis import plot_scene
 
 from model import Pix2Voxel
 from train_utils import create_dir
 from data_loader import IKEAManualStep, R2N2
+import utils_vox
 
 def parse_args():
     
@@ -46,6 +58,7 @@ def parse_args():
     parser.add_argument('--resize_h', default=224, type=int)
     parser.add_argument('--use_line_seg', action=argparse.BooleanOptionalAction)
     parser.add_argument('--use_seg_mask', action=argparse.BooleanOptionalAction)
+    parser.add_argument('--debug', default=True, action=argparse.BooleanOptionalAction)
     
     # Logging parameters
     parser.add_argument('--log_freq', default=1000, type=str)
@@ -59,17 +72,12 @@ def parse_args():
     # parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_2000.pth', type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
+    parser.add_argument('--debug_dir', type=str, default='./debug_output')
     parser.add_argument('--dataset_path', type=str, default='./dataset')
     
     return parser.parse_args()
 
-def preprocess(feed_dict, args):
-    # if args.r2n2:
-    #     # image_names = torch.tensor(0) #FIXME
-    #     image_names = torch.tensor(np.array(feed_dict['names'])).reshape(-1, 1)
-    #     images = feed_dict['images']
-    #     voxels = feed_dict['voxels'].squeeze(1).float()
-    # else:
+def preprocess(feed_dict, args, dataset):
     image_names = torch.tensor(feed_dict['names']).reshape(-1, 1)
     images = feed_dict['images'].squeeze(1).float()
     voxels = feed_dict['voxels'].float()
@@ -90,6 +98,7 @@ def main(args):
     args.logs_dir = os.path.join(args.logs_dir, args.model)
     create_dir(args.checkpoint_dir)
     create_dir(args.logs_dir)
+    create_dir(args.debug_dir)
     
     ## Tensorboard Logger
     dt = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
@@ -194,10 +203,17 @@ def main(args):
 
         feed_dict = next(train_loader)
 
-        _, images_gt, ground_truth_3d = preprocess(feed_dict, args)
+        names, images_gt, ground_truth_3d = preprocess(feed_dict, args, dataset)
         read_time = time.time() - read_start_time
 
         prediction_3d = model(images_gt, args).squeeze()
+        
+        if args.debug:
+            for i, name in enumerate(names):
+                mesh = cubify(prediction_3d[i].unsqueeze(0), thresh=0)
+                save_obj(f"{args.debug_dir}/{name.item()}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
+                mesh_gt = cubify(ground_truth_3d[i].unsqueeze(0), thresh=0)
+                save_obj(f"{args.debug_dir}/{name.item()}_gt.obj", verts=mesh_gt.verts_list()[0], faces=mesh_gt.faces_list()[0])
 
         loss = calculate_voxel_loss(prediction_3d, ground_truth_3d)
 

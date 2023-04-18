@@ -610,58 +610,105 @@ class R2N2(ShapeNetBase):
         
         print("Loading images...")
         name_dic = defaultdict(list)
-        self.names, self.imgs = [], []
+        self.names, self.imgs, self.imgpaths = [], [], []
         imgsfolder = os.path.join(r2n2_dir, views_rel_path, "03001627")
         obj_imgs = glob(f"{imgsfolder}/*")
-        obj_imgs = sorted(obj_imgs)
+        obj_imgs = sorted(obj_imgs)[:10] #TODO: remove [:10]
         for i, objf in enumerate(tqdm(obj_imgs, total=len(obj_imgs))):
             objname = os.path.basename(os.path.normpath(objf))
             
             for imgf in sorted(glob(f"{objf}/**/*.png")):
                 imgnum = int(os.path.basename(imgf)[:-4])
                 
-                img = cv2.imread(imgf)
-                if img.ndim != 3:
-                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-                if img.shape != (224,224,3):
-                    img = cv2.resize(img, (224,224))
+                # img = cv2.imread(imgf)
+                # if img.ndim != 3:
+                #     img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+                # if img.shape != (224,224,3):
+                #     img = cv2.resize(img, (224,224))
                 
-                self.imgs.append(torch.from_numpy(img).permute(2,0,1))
+                # self.imgs.append(torch.from_numpy(img).permute(2,0,1))
+                self.imgpaths.append(imgf)
                 self.names.append(int(i*15+imgnum))
                 name_dic[objname].append(int(i*15+imgnum))
         
         print("Loading voxels...")
-        self.voxels = []
-        voxelsfolder = os.path.join(r2n2_dir, voxels_rel_path, "03001627")
-        obj_voxels = glob(f"{voxelsfolder}/*")
-        obj_voxels = sorted(obj_voxels)
+        self.voxels, self.voxelpaths = [], []
+        self.voxelsfolder = os.path.join(r2n2_dir, voxels_rel_path, "03001627")
+        obj_voxels = glob(f"{self.voxelsfolder}/*")
+        obj_voxels = sorted(obj_voxels)[:10] #TODO: remove [:10]
         for i, objf in enumerate(tqdm(obj_voxels, total=len(obj_voxels))):
             objname = os.path.basename(os.path.normpath(objf))
             
-            modelpath = os.path.join(shapenet_dir, "03001627", objname, "model.obj")
-            try:
-                verts, faces, textures = self._load_mesh(modelpath)
-            except Exception:
-                st()
+            # modelpath = os.path.join(shapenet_dir, "03001627", objname, "model.obj")
+            # try:
+            #     verts, faces, textures = self._load_mesh(modelpath)
+            # except Exception:
+            #     st()
                 
-            voxf = os.path.join(objf, "model.binvox")
-            with open(voxf, "rb") as f:
-                voxel_coords = read_binvox_coords(f)
-            voxel_coords = align_bbox(voxel_coords, verts)
-            voxel = utils_vox.voxelize_xyz(voxel_coords.unsqueeze(0),32,32,32).squeeze(0,1)
+            # voxf = os.path.join(objf, "model.binvox")
+            # with open(voxf, "rb") as f:
+            #     voxel_coords = read_binvox_coords(f)
+            # voxel_coords = align_bbox(voxel_coords, verts)
+            # voxel = utils_vox.voxelize_xyz(voxel_coords.unsqueeze(0),32,32,32).squeeze(0,1)
             
             for _ in range(len(name_dic[objname])):
-                self.voxels.append(voxel)
+                # self.voxels.append(voxel)
+                self.voxelpaths.append(objf)
+        
+        # self.name_dic = {label: offset  for objname, numlist in name_dic.items()}
+        self.name_dic = {}
+        for objname, numlist in name_dic.items():
+            for num in numlist:
+                self.name_dic[num] = objname
         
         assert len(self.imgs) == len(self.voxels)
     
     def __len__(self):
-        return len(self.imgs)
+        return len(self.imgpaths)
     
     def __getitem__(self, idx):
+        
+        img = cv2.imread(self.imgpaths[idx])
+        if img.ndim != 3:
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        if img.shape != (224,224,3):
+            img = cv2.resize(img, (224,224))
+        img = torch.from_numpy(img).permute(2,0,1)
+        
+        objname = os.path.basename(os.path.normpath(self.voxelpaths[idx]))
+        modelpath = os.path.join(self.shapenet_dir, "03001627", objname, "model.obj")
+        try:
+            verts, faces, textures = self._load_mesh(modelpath)
+        except Exception:
+            st()
+        
+        voxf = os.path.join(self.voxelpaths[idx], "model.binvox")
+        with open(voxf, "rb") as f:
+            voxel_coords = read_binvox_coords(f)
+        voxel_coords = align_bbox(voxel_coords, verts)
+        voxel = utils_vox.voxelize_xyz(voxel_coords.unsqueeze(0),32,32,32).squeeze(0,1)
+        
+        # gt_textures = torch.ones_like(verts)*torch.tensor([[0.0, 1.0, 0.0]])
+        # gt_mesh = Meshes(
+        #     verts=verts.unsqueeze(0),
+        #     faces=faces.unsqueeze(0),
+        #     textures=TexturesVertex(gt_textures.unsqueeze(0))
+        # )
+        # scene = plot_scene({
+        #     "Figure1": {
+        #         "GT Mesh": gt_mesh
+        #     }
+        # })
+        # scene.show()
+        
         dic = {
             'names': self.names[idx],
-            'images': self.imgs[idx],
-            'voxels': self.voxels[idx]
+            'images': img,
+            'voxels': voxel
         }
+        # dic = {
+        #     'names': self.names[idx],
+        #     'images': self.imgs[idx],
+        #     'voxels': self.voxels[idx]
+        # }
         return dic
