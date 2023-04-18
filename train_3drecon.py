@@ -55,23 +55,24 @@ def parse_args():
     parser.add_argument('--device', default='cuda', type=str) 
     
     # Directories & Checkpoint
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_2000.pth', type=str)            
+    parser.add_argument('--load_checkpoint', default=None, type=str)            
+    # parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_2000.pth', type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
-    parser.add_argument('--dataset_path', type=str, default='../dataset')
+    parser.add_argument('--dataset_path', type=str, default='./dataset')
     
     return parser.parse_args()
 
 def preprocess(feed_dict, args):
-    if args.r2n2:
-        # image_names = torch.tensor(0) #FIXME
-        image_names = torch.tensor(np.array(feed_dict['names'])).reshape(-1, 1)
-        images = feed_dict['images']
-        voxels = feed_dict['voxels'].squeeze(1).float()
-    else:
-        image_names = torch.tensor(feed_dict['names']).reshape(-1, 1)
-        images = feed_dict['images'].squeeze(1)
-        voxels = feed_dict['voxels'].float()
+    # if args.r2n2:
+    #     # image_names = torch.tensor(0) #FIXME
+    #     image_names = torch.tensor(np.array(feed_dict['names'])).reshape(-1, 1)
+    #     images = feed_dict['images']
+    #     voxels = feed_dict['voxels'].squeeze(1).float()
+    # else:
+    image_names = torch.tensor(feed_dict['names']).reshape(-1, 1)
+    images = feed_dict['images'].squeeze(1).float()
+    voxels = feed_dict['voxels'].float()
     ground_truth_3d = voxels
     
     return image_names.to(args.device), images.to(args.device), ground_truth_3d.to(args.device)
@@ -119,54 +120,64 @@ def main(args):
     args.transforms = transform
 
     if args.r2n2:
+        # shapenet_path = f"{args.r2n2_dir}/shapenet"
+        # r2n2_path = f"{args.r2n2_dir}/r2n2"
+        # splits_path = f"{args.r2n2_dir}/line_split.json"
+        
+        # train_set = R2N2(
+        #                 # "train", 
+        #                 shapenet_path, r2n2_path, 
+        #                 # splits_path, 
+        #                 # return_voxels=True, return_feats=False, return_RTK=False,
+        #                 views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
+        # test_set = R2N2(
+        #                 # "test", 
+        #                 shapenet_path, r2n2_path, 
+        #                 # splits_path, 
+        #                 # return_voxels=True, return_feats=False, return_RTK=False,
+        #                 views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
+
+        # train_dataloader = DataLoader(
+        #     train_set,
+        #     batch_size=args.batch_size,
+        #     num_workers=args.num_workers,
+        #     collate_fn=collate_batched_R2N2,
+        #     pin_memory=True,
+        #     drop_last=True,
+        #     )
+        # test_dataloader = DataLoader(
+        #     test_set,
+        #     batch_size=1,
+        #     num_workers=args.num_workers,
+        #     collate_fn=collate_batched_R2N2,
+        #     pin_memory=True,
+        #     drop_last=True,
+        #     )
+        # train_loader = iter(train_dataloader)
+        # test_loader = test_dataloader
+
         shapenet_path = f"{args.r2n2_dir}/shapenet"
         r2n2_path = f"{args.r2n2_dir}/r2n2"
-        splits_path = f"{args.r2n2_dir}/line_split.json"
         
-        train_set = R2N2("train", 
-                            shapenet_path, r2n2_path, splits_path, 
-                            return_voxels=True, return_feats=False, return_RTK=False,
-                            views_rel_path="LineDrawings")
-        test_set = R2N2("test", 
-                            shapenet_path, r2n2_path, splits_path, 
-                            return_voxels=True, return_feats=False, return_RTK=False,
-                            views_rel_path="LineDrawings")
-
-        train_dataloader = DataLoader(
-            train_set,
-            batch_size=args.batch_size,
-            num_workers=args.num_workers,
-            collate_fn=collate_batched_R2N2,
-            pin_memory=True,
-            drop_last=True,
-            )
-        test_dataloader = DataLoader(
-            test_set,
-            batch_size=1,
-            num_workers=args.num_workers,
-            collate_fn=collate_batched_R2N2,
-            pin_memory=True,
-            drop_last=True,
-            )
-        train_loader = iter(train_dataloader)
-        test_loader = test_dataloader
-        
+        dataset = R2N2(shapenet_path, r2n2_path, 
+                       views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
     else:
         dataset = IKEAManualStep(args)
-        train_set, test_set = random_split(dataset, [args.train_test_split_ratio, 1-args.train_test_split_ratio])
+    
+    train_set, test_set = random_split(dataset, [args.train_test_split_ratio, 1-args.train_test_split_ratio])
 
-        train_dataloader = DataLoader(dataset=train_set, 
-                                batch_size=args.batch_size, 
-                                shuffle=True, 
-                                num_workers=args.num_workers)
+    train_dataloader = DataLoader(dataset=train_set, 
+                            batch_size=args.batch_size, 
+                            shuffle=True, 
+                            num_workers=args.num_workers)
 
-        test_dataloader = DataLoader(dataset=test_set, 
-                                batch_size=args.batch_size, 
-                                shuffle=True, 
-                                num_workers=args.num_workers)
+    test_dataloader = DataLoader(dataset=test_set, 
+                            batch_size=args.batch_size, 
+                            shuffle=True, 
+                            num_workers=args.num_workers)
 
-        train_loader = iter(train_dataloader)
-        test_loader = test_dataloader
+    train_loader = iter(train_dataloader)
+    test_loader = test_dataloader
     
     print (f"@@@@ Successfully loaded data: train_set {len(train_set)} | test_set {len(test_set)}")
     

@@ -4,6 +4,7 @@ import json
 import pathlib
 import argparse as ap
 
+from tqdm import tqdm
 from pdf2image import convert_from_path
 from pdf2image.exceptions import (
     PDFInfoNotInstalledError,
@@ -38,7 +39,7 @@ if __name__ == '__main__':
         if class_name != _prev_class_name or model_name != _prev_model_name:
             _prev_page_end = 0
 
-        for i, img in enumerate(images):
+        for i, img in enumerate(tqdm(images, total=len(images))):
             w, h = img.size
             img_name = f"{running_ctr:05d}.png"
             img.save(os.path.join(args.dataset_path, "images", img_name))

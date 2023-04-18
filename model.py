@@ -48,10 +48,11 @@ class Pix2Voxel(nn.Module):
         )
     
     def forward(self, images, args):
-        if args.r2n2:
-            images_normalize = self.normalize(images.permute(0,3,1,2))
-        else:
-            images_normalize = self.normalize(images)
+        # if args.r2n2:
+        #     images_normalize = self.normalize(images.permute(0,3,1,2))
+        # else:
+            # images_normalize = self.normalize(images)
+        images_normalize = self.normalize(images)
         encoded_feat = self.encoder(images_normalize).squeeze(-1).squeeze(-1) # b x 512
         
         inp = encoded_feat.view(-1, 64, 2, 2, 2)

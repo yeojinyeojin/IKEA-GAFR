@@ -8,9 +8,11 @@ import random
 import warnings
 from pathlib import Path
 from tabulate import tabulate
+from collections import defaultdict
 
 import cv2
 from PIL import Image
+from tqdm import tqdm
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -39,40 +41,40 @@ def read_hdf5(file, key = 'tensor'):
 
     return gt_voxels
 
-class IKEAManualPDF(Dataset): #currently not using (instead, train YOLOv5 as is)
-    def __init__(self, datadir, transforms=None):
-        super().__init__()
+# class IKEAManualPDF(Dataset): #currently not using (instead, train YOLOv5 as is)
+#     def __init__(self, datadir, transforms=None):
+#         super().__init__()
         
-        self.imgdir = f"{datadir}/images"
-        self.imgpaths = glob(f"{self.imgdir}/**/*.png", recursive=True)
+#         self.imgdir = f"{datadir}/images"
+#         self.imgpaths = glob(f"{self.imgdir}/**/*.png", recursive=True)
         
         
-        self.annotfile = f"{datadir}/annotation.json" #TODO
-        with open(self.annotfile) as f:
-            self.annotation = json.load(f)
+#         self.annotfile = f"{datadir}/annotation.json" #TODO
+#         with open(self.annotfile) as f:
+#             self.annotation = json.load(f)
         
-        self.imgs = []
-        for imgpath in self.imgpaths:
-            img = Image.open(imgpath)
-            if transforms is not None:
-                img = transforms(img)
-            self.imgs.append(img)
-        # sorted(self.imgs) #TODO: needed?
+#         self.imgs = []
+#         for imgpath in self.imgpaths:
+#             img = Image.open(imgpath)
+#             if transforms is not None:
+#                 img = transforms(img)
+#             self.imgs.append(img)
+#         # sorted(self.imgs) #TODO: needed?
         
-        #TODO: load labels
-        self.labels = torch.randn(len(self.imgs), 5)
-        # self.labels = []
+#         #TODO: load labels
+#         self.labels = torch.randn(len(self.imgs), 5)
+#         # self.labels = []
         
-    def __len__(self):
-        return len(self.imgs)
+#     def __len__(self):
+#         return len(self.imgs)
 
-    def __getitem__(self, idx):
-        dic = {
-            'images': self.imgs[idx],
-            'voxels': self.voxels[idx],
-        }
+#     def __getitem__(self, idx):
+#         dic = {
+#             'images': self.imgs[idx],
+#             'voxels': self.voxels[idx],
+#         }
         
-        return dic
+#         return dic
 
 class IKEAManualStep(Dataset):
     def __init__(self, args):
@@ -173,7 +175,7 @@ BLENDER_INTRINSIC = torch.tensor(
     ]
 )
 
-class R2N2(ShapeNetBase):  # pragma: no cover
+class R2N2_orig(ShapeNetBase):  # pragma: no cover
     """
     This class loads the R2N2 dataset from a given directory into a Dataset object.
     The R2N2 dataset contains 13 categories that are a subset of the ShapeNetCore v.1
@@ -493,17 +495,17 @@ class R2N2(ShapeNetBase):  # pragma: no cover
             #     voxels = voxelize(voxel_coords, P, VOXEL_SIZE)
             #     voxels_list.append(voxels)
             model["voxels"] = voxels
-        num_views = model['images'].shape[0]
-        rand_view = random.randint(0,num_views-1)
-
-        model['images'] = model['images'][rand_view]
-        if self.return_RTK:
-            model['R'] = model['R'][rand_view]
-            model['T'] = model['T'][rand_view]
-            model['K'] = model['K'][rand_view]
-        if self.return_feats:
-            model["feats"] = model["feats"][rand_view]
-
+        
+        ## randomly select one view among all
+        # num_views = model['images'].shape[0]
+        # rand_view = random.randint(0,num_views-1)
+        # model['images'] = model['images'][rand_view]
+        # if self.return_RTK:
+        #     model['R'] = model['R'][rand_view]
+        #     model['T'] = model['T'][rand_view]
+        #     model['K'] = model['K'][rand_view]
+        # if self.return_feats:
+        #     model["feats"] = model["feats"][rand_view]
         
         return model
 
@@ -591,3 +593,75 @@ class R2N2(ShapeNetBase):  # pragma: no cover
         return super().render(
             idxs=idxs, shader_type=shader_type, device=device, cameras=cameras, **kwargs
         )
+        
+class R2N2(ShapeNetBase):
+    def __init__(self, shapenet_dir, r2n2_dir, views_rel_path, voxels_rel_path):
+        super().__init__()
+        self.shapenet_dir = shapenet_dir
+        self.r2n2_dir = r2n2_dir
+        self.views_rel_path = views_rel_path
+        self.voxels_rel_path = voxels_rel_path
+        
+        # Synset dictionary mapping synset offsets in R2N2 to corresponding labels.
+        with open(os.path.join(SYNSET_DICT_DIR, "r2n2_synset_dict.json"), "r") as read_dict:
+            self.synset_dict = json.load(read_dict)
+        # Inverse dictionary mapping synset labels to corresponding offsets.
+        self.synset_inv = {label: offset for offset, label in self.synset_dict.items()}
+        
+        print("Loading images...")
+        name_dic = defaultdict(list)
+        self.names, self.imgs = [], []
+        imgsfolder = os.path.join(r2n2_dir, views_rel_path, "03001627")
+        obj_imgs = glob(f"{imgsfolder}/*")
+        obj_imgs = sorted(obj_imgs)
+        for i, objf in enumerate(tqdm(obj_imgs, total=len(obj_imgs))):
+            objname = os.path.basename(os.path.normpath(objf))
+            
+            for imgf in sorted(glob(f"{objf}/**/*.png")):
+                imgnum = int(os.path.basename(imgf)[:-4])
+                
+                img = cv2.imread(imgf)
+                if img.ndim != 3:
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+                if img.shape != (224,224,3):
+                    img = cv2.resize(img, (224,224))
+                
+                self.imgs.append(torch.from_numpy(img).permute(2,0,1))
+                self.names.append(int(i*15+imgnum))
+                name_dic[objname].append(int(i*15+imgnum))
+        
+        print("Loading voxels...")
+        self.voxels = []
+        voxelsfolder = os.path.join(r2n2_dir, voxels_rel_path, "03001627")
+        obj_voxels = glob(f"{voxelsfolder}/*")
+        obj_voxels = sorted(obj_voxels)
+        for i, objf in enumerate(tqdm(obj_voxels, total=len(obj_voxels))):
+            objname = os.path.basename(os.path.normpath(objf))
+            
+            modelpath = os.path.join(shapenet_dir, "03001627", objname, "model.obj")
+            try:
+                verts, faces, textures = self._load_mesh(modelpath)
+            except Exception:
+                st()
+                
+            voxf = os.path.join(objf, "model.binvox")
+            with open(voxf, "rb") as f:
+                voxel_coords = read_binvox_coords(f)
+            voxel_coords = align_bbox(voxel_coords, verts)
+            voxel = utils_vox.voxelize_xyz(voxel_coords.unsqueeze(0),32,32,32).squeeze(0,1)
+            
+            for _ in range(len(name_dic[objname])):
+                self.voxels.append(voxel)
+        
+        assert len(self.imgs) == len(self.voxels)
+    
+    def __len__(self):
+        return len(self.imgs)
+    
+    def __getitem__(self, idx):
+        dic = {
+            'names': self.names[idx],
+            'images': self.imgs[idx],
+            'voxels': self.voxels[idx]
+        }
+        return dic
