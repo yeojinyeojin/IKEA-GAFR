@@ -8,6 +8,7 @@ import h5py
 import warnings
 warnings.filterwarnings('ignore', category=UserWarning, message='TypedStorage is deprecated')
 
+import cv2
 import numpy as np
 import torch
 import torch.nn as nn
@@ -45,7 +46,7 @@ def parse_args():
     parser.add_argument('--model', default='pix2vox', type=str, help="architecture for 3D reconstruction")
     
     # Pre-Training parameters
-    parser.add_argument('--r2n2', default=True, action='store_true')
+    parser.add_argument('--r2n2', default=False, action='store_true')
     parser.add_argument('--r2n2_dir', default='./dataset/r2n2_shapenet_dataset', type=str)
     
     # Training parameters
@@ -69,7 +70,7 @@ def parse_args():
     
     # Directories & Checkpoint
     # parser.add_argument('--load_checkpoint', default=None, type=str)            
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_1000.pth', type=str)            
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_3000.pth', type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
     parser.add_argument('--debug_dir', type=str, default='./debug_output')
@@ -92,6 +93,10 @@ def calculate_voxel_loss(voxel_src, voxel_tgt):
     loss = torch.nn.BCELoss()(voxel_src, voxel_tgt)
     
     return loss
+
+def save_as_mesh(prediction_3d, save_name, cubify_thresh=0.5):
+    mesh = cubify(prediction_3d, thresh=cubify_thresh)
+    save_obj(f"{save_name}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
     
 def main(args):
     ## Create directories for checkpoints and tensorboard logs
@@ -99,12 +104,14 @@ def main(args):
     args.logs_dir = os.path.join(args.logs_dir, args.model)
     create_dir(args.checkpoint_dir)
     create_dir(args.logs_dir)
-    create_dir(args.debug_dir)
     
     ## Tensorboard Logger
     dt = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     create_dir(os.path.join(args.logs_dir, dt))
-    create_dir(os.path.join(args.out_dir), dt)
+    args.out_dir = os.path.join(args.out_dir, dt)
+    create_dir(args.out_dir)
+    args.debug_dir = os.path.join(args.debug_dir, dt)
+    create_dir(args.debug_dir)
     writer = SummaryWriter(os.path.join(args.logs_dir, dt))
     
     ## Load model & optimizer
@@ -210,12 +217,11 @@ def main(args):
 
         prediction_3d = model(images_gt, args).squeeze()
         
-        if args.debug:
+        if args.debug and step % len(train_loader) == 0:
             for i, name in enumerate(names):
-                mesh = cubify(prediction_3d[i].unsqueeze(0), thresh=0.5)
-                save_obj(f"{args.debug_dir}/{step}_{name.item()}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
-                mesh_gt = cubify(ground_truth_3d[i].unsqueeze(0), thresh=0.5)
-                save_obj(f"{args.debug_dir}/{step}_{name.item()}_gt.obj", verts=mesh_gt.verts_list()[0], faces=mesh_gt.faces_list()[0])
+                save_as_mesh(prediction_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}")
+                save_as_mesh(ground_truth_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}_gt")
+                cv2.imwrite(f"{args.debug_dir}/{step}_{name.item()}_gt.png", images_test[i].permute(0,2,3,1)[0].cpu().numpy())
                 break
 
         loss = calculate_voxel_loss(prediction_3d, ground_truth_3d)
@@ -242,7 +248,7 @@ def main(args):
         print("[%4d/%4d]; ttime: %.0f (%.2f, %.2f); loss: %.3f" % (step, args.max_iter, total_time, read_time, iter_time, loss_vis))
 
         if ((step + 1) % args.eval_freq) == 0:
-            print("Evaluating at ", step)
+            print("@@@ Evaluating at ", step)
             model.eval()
             with torch.no_grad():
                 num_batches = 0
@@ -251,14 +257,20 @@ def main(args):
                 image_names = None
                 for batch in test_loader:
                     image_test_names, images_test, ground_truth_3d = preprocess(batch, args, test_set)
-                    # image_test_names, images_test, ground_truth_3d = preprocess(feed_dict, args)
                     prediction_3d = model(images_test, args).squeeze()
+                    
+                    for i, name in enumerate(image_test_names[:10]):
+                        save_as_mesh(prediction_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}")
+                        save_as_mesh(ground_truth_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}_gt")
+                        cv2.imwrite(f"{args.debug_dir}/{step}_{name.item()}_gt.png", images_test[i].permute(0,2,3,1)[0].cpu().numpy())
+                    
                     if predictions is None:
                         predictions = prediction_3d
                         image_names = image_test_names
                     else:
                         predictions = torch.cat([predictions, prediction_3d], dim=0)
                         image_names = torch.cat([image_names, image_test_names], dim=0)
+                    
                     num_batches += 1
                     total_loss += calculate_voxel_loss(prediction_3d, ground_truth_3d.squeeze()).cpu().item()
 
@@ -272,12 +284,12 @@ def main(args):
                 output_file.create_dataset('tensor', data=predictions.cpu().numpy())
                 output_file.close()
                 
-                for i, name in enumerate(image_test_names):
-                    mesh = cubify(prediction_3d[i].unsqueeze(0), thresh=0.5)
-                    save_obj(f"{args.out_dir}/{step}_{name.item()}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
-                    mesh_gt = cubify(ground_truth_3d[i].unsqueeze(0), thresh=0.5)
-                    save_obj(f"{args.out_dir}/{step}_{name.item()}_gt.obj", verts=mesh_gt.verts_list()[0], faces=mesh_gt.faces_list()[0])
-                    break
+                # for i, name in enumerate(image_test_names):
+                #     mesh = cubify(prediction_3d[i].unsqueeze(0), thresh=0.5)
+                #     save_obj(f"{args.out_dir}/{step}_{name.item()}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
+                #     mesh_gt = cubify(ground_truth_3d[i].unsqueeze(0), thresh=0.5)
+                #     save_obj(f"{args.out_dir}/{step}_{name.item()}_gt.obj", verts=mesh_gt.verts_list()[0], faces=mesh_gt.faces_list()[0])
+                #     break
         model.train()
     print('Done!')
     

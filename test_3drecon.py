@@ -8,6 +8,7 @@ import h5py
 import warnings
 warnings.filterwarnings('ignore', category=UserWarning, message='TypedStorage is deprecated')
 
+import cv2
 import numpy as np
 import torch
 import torch.nn as nn
@@ -25,7 +26,7 @@ from pytorch3d.ops import cubify
 from model import Pix2Voxel
 from train_utils import create_dir
 from data_loader import IKEAManualStep, R2N2
-from train_3drecon import preprocess, calculate_voxel_loss
+from train_3drecon import preprocess, calculate_voxel_loss, save_as_mesh
 
 def parse_args():
     
@@ -36,7 +37,7 @@ def parse_args():
     parser.add_argument('--model', default='pix2vox', type=str, help="architecture for 3D reconstruction")
     
     # Pre-Training parameters
-    parser.add_argument('--r2n2', default=False, action='store_true')
+    parser.add_argument('--r2n2', default=True, action='store_true')
     parser.add_argument('--r2n2_dir', default='./dataset/r2n2_shapenet_dataset', type=str)
     
     # Training parameters
@@ -56,13 +57,15 @@ def parse_args():
     
     # Directories & Checkpoint
     parser.add_argument('--dataset_path', type=str, default='./dataset')
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_3000.pth', type=str)            
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_pretraining/checkpoint_2500.pth', type=str)            
     parser.add_argument('--out_dir', type=str, default='./inference_outputs')
     
     return parser.parse_args()
 
 def main(args):
     
+    if args.r2n2:
+        args.out_dir = os.path.join(args.out_dir, "r2n2")
     create_dir(args.out_dir)
     
     ## Load model & optimizer
@@ -71,8 +74,9 @@ def main(args):
     model.eval()
     
     checkpoint = torch.load(args.load_checkpoint)
+    start_iter = checkpoint['step']
     model.load_state_dict(checkpoint['model_state_dict'])
-    print(f"@@@@ Succesfully loaded model")
+    print(f"@@@@ Succesfully loaded model iter {start_iter}")
     
     ## Load dataset
     transform = transforms.Compose([
@@ -84,67 +88,56 @@ def main(args):
     if args.r2n2:
         shapenet_path = f"{args.r2n2_dir}/shapenet"
         r2n2_path = f"{args.r2n2_dir}/r2n2"
-        splits_path = f"{args.r2n2_dir}/line_split.json"
         
-        dataset = R2N2("test", 
-                        shapenet_path, r2n2_path, splits_path, 
-                        return_voxels=True, return_feats=False, return_RTK=False,
-                        views_rel_path="LineDrawings")
+        dataset = R2N2(shapenet_path, r2n2_path, 
+                       views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
         
-        test_dataloader = DataLoader(dataset,
-                                    batch_size=args.batch_size,
-                                    num_workers=args.num_workers,
-                                    collate_fn=collate_batched_R2N2,
-                                    pin_memory=True,
-                                    drop_last=True,
-                                    )
-    
     else:
         dataset = IKEAManualStep(args)
         
-        test_dataloader = DataLoader(dataset=dataset, 
-                                    batch_size=args.batch_size, 
-                                    shuffle=True, 
-                                    num_workers=args.num_workers)
+    test_dataloader = DataLoader(dataset=dataset, 
+                                batch_size=args.batch_size, 
+                                shuffle=False, 
+                                num_workers=args.num_workers)
 
     print (f"@@@@ Successfully loaded data {len(dataset)}")
     
-    num_batches, total_loss, predictions, image_names = 0, 0, None, None
-    start_time = time.time()
-    for i, batch in enumerate(test_dataloader):
-        step_start_time = time.time()
+    with torch.no_grad():
+        num_batches, total_loss, predictions, image_names = 0, 0, None, None
+        start_time = time.time()
+        for i, batch in enumerate(test_dataloader):
+            step_start_time = time.time()
+            
+            read_start_time = time.time()
+            image_test_names, images_gt, ground_truth_3d = preprocess(batch, args, dataset)
+            read_time = time.time() - read_start_time
         
-        read_start_time = time.time()
-        image_test_names, images_gt, ground_truth_3d = preprocess(batch, args)
-        read_time = time.time() - read_start_time
-        
-        with torch.no_grad():
             prediction_3d = model(images_gt, args).squeeze()
-        # if predictions is None:
-        #     predictions = prediction_3d
-        #     image_names = image_test_names
-        # else:
-        #     predictions = torch.cat([predictions, prediction_3d], dim=0)
-        #     image_names = torch.cat([image_names, image_test_names], dim=0)
-        prediction_3d = prediction_3d.unsqueeze(0)
-        loss = calculate_voxel_loss(prediction_3d, ground_truth_3d)
-        total_loss += loss
-        loss_vis = loss.cpu().item()
-        
-        total_time = time.time() - start_time
-        iter_time = time.time() - step_start_time
-        
-        num_batches += 1
-        print("[%4d/%4d]; ttime: %.0f (%.2f, %.2f); loss: %.3f" % (i, args.max_iter, total_time, read_time, iter_time, loss_vis))
-        
-        # Volume Visualization
-        mesh = cubify(prediction_3d, thresh=0)
-        save_obj(f"{args.out_dir}/{i}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
-        import pdb; pdb.set_trace()
-        # tex = torch.ones_like(mesh.verts_list()[0]) * torch.tensor([0,0,0]).to(args.device)
-        # mesh.textures = pytorch3d.renderer.TexturesVertex(tex.unsqueeze(0))
-        # rend = renderer(entity, cameras=cameras.to(device), lights=lights.to(device))
-
+            if predictions is None:
+                predictions = prediction_3d
+                image_names = image_test_names
+            else:
+                predictions = torch.cat([predictions, prediction_3d], dim=0)
+                image_names = torch.cat([image_names, image_test_names], dim=0)
+            
+            num_batches += 1
+            loss = calculate_voxel_loss(prediction_3d, ground_truth_3d.squeeze()).cpu().item()
+            total_loss += loss
+            
+            total_time = time.time() - start_time
+            iter_time = time.time() - step_start_time
+            print("[%4d/%4d]; ttime: %.0f (%.2f, %.2f); loss: %.3f" % (i, args.max_iter, total_time, read_time, iter_time, loss))
+            
+            # Volume Visualization
+            if args.r2n2:
+                objname = dataset.name_dic[image_test_names.item()]
+                objname += f"_{image_test_names.item()}"
+            else:
+                objname = image_test_names.item()
+            save_as_mesh(prediction_3d.unsqueeze(0), f"{args.out_dir}/{objname}")
+            save_as_mesh(ground_truth_3d, f"{args.out_dir}/{objname}_gt")
+            cv2.imwrite(f"{args.out_dir}/{objname}_gt.png", images_gt.permute(0,2,3,1)[0].cpu().numpy())
+            
     if num_batches != 0:
         total_loss /= num_batches
     print("Total Loss: ", total_loss)

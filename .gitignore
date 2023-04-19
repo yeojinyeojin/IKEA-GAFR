@@ -24,6 +24,5 @@ debug_output
 cad_models/
 logs/
 checkpoints/
-inference_outputs
 *.zip
 
