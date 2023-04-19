@@ -613,7 +613,7 @@ class R2N2(ShapeNetBase):
         self.names, self.imgs, self.imgpaths = [], [], []
         imgsfolder = os.path.join(r2n2_dir, views_rel_path, "03001627")
         obj_imgs = glob(f"{imgsfolder}/*")
-        obj_imgs = sorted(obj_imgs)[:10] #TODO: remove [:10]
+        obj_imgs = sorted(obj_imgs)
         for i, objf in enumerate(tqdm(obj_imgs, total=len(obj_imgs))):
             objname = os.path.basename(os.path.normpath(objf))
             
@@ -635,7 +635,7 @@ class R2N2(ShapeNetBase):
         self.voxels, self.voxelpaths = [], []
         self.voxelsfolder = os.path.join(r2n2_dir, voxels_rel_path, "03001627")
         obj_voxels = glob(f"{self.voxelsfolder}/*")
-        obj_voxels = sorted(obj_voxels)[:10] #TODO: remove [:10]
+        obj_voxels = sorted(obj_voxels)
         for i, objf in enumerate(tqdm(obj_voxels, total=len(obj_voxels))):
             objname = os.path.basename(os.path.normpath(objf))
             

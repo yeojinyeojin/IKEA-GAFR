@@ -68,11 +68,12 @@ def parse_args():
     parser.add_argument('--device', default='cuda', type=str) 
     
     # Directories & Checkpoint
-    parser.add_argument('--load_checkpoint', default=None, type=str)            
-    # parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_2000.pth', type=str)            
+    # parser.add_argument('--load_checkpoint', default=None, type=str)            
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_1000.pth', type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
     parser.add_argument('--debug_dir', type=str, default='./debug_output')
+    parser.add_argument('--out_dir', type=str, default='./train_output')
     parser.add_argument('--dataset_path', type=str, default='./dataset')
     
     return parser.parse_args()
@@ -103,6 +104,7 @@ def main(args):
     ## Tensorboard Logger
     dt = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     create_dir(os.path.join(args.logs_dir, dt))
+    create_dir(os.path.join(args.out_dir), dt)
     writer = SummaryWriter(os.path.join(args.logs_dir, dt))
     
     ## Load model & optimizer
@@ -210,10 +212,11 @@ def main(args):
         
         if args.debug:
             for i, name in enumerate(names):
-                mesh = cubify(prediction_3d[i].unsqueeze(0), thresh=0)
-                save_obj(f"{args.debug_dir}/{name.item()}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
-                mesh_gt = cubify(ground_truth_3d[i].unsqueeze(0), thresh=0)
-                save_obj(f"{args.debug_dir}/{name.item()}_gt.obj", verts=mesh_gt.verts_list()[0], faces=mesh_gt.faces_list()[0])
+                mesh = cubify(prediction_3d[i].unsqueeze(0), thresh=0.5)
+                save_obj(f"{args.debug_dir}/{step}_{name.item()}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
+                mesh_gt = cubify(ground_truth_3d[i].unsqueeze(0), thresh=0.5)
+                save_obj(f"{args.debug_dir}/{step}_{name.item()}_gt.obj", verts=mesh_gt.verts_list()[0], faces=mesh_gt.faces_list()[0])
+                break
 
         loss = calculate_voxel_loss(prediction_3d, ground_truth_3d)
 
@@ -247,7 +250,7 @@ def main(args):
                 predictions = None
                 image_names = None
                 for batch in test_loader:
-                    image_test_names, images_test, ground_truth_3d = preprocess(batch, args)
+                    image_test_names, images_test, ground_truth_3d = preprocess(batch, args, test_set)
                     # image_test_names, images_test, ground_truth_3d = preprocess(feed_dict, args)
                     prediction_3d = model(images_test, args).squeeze()
                     if predictions is None:
@@ -268,6 +271,13 @@ def main(args):
                 output_file = h5py.File(os.path.join(args.logs_dir, dt, 'output_{:05d}.h5'.format(step)), 'w')
                 output_file.create_dataset('tensor', data=predictions.cpu().numpy())
                 output_file.close()
+                
+                for i, name in enumerate(image_test_names):
+                    mesh = cubify(prediction_3d[i].unsqueeze(0), thresh=0.5)
+                    save_obj(f"{args.out_dir}/{step}_{name.item()}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
+                    mesh_gt = cubify(ground_truth_3d[i].unsqueeze(0), thresh=0.5)
+                    save_obj(f"{args.out_dir}/{step}_{name.item()}_gt.obj", verts=mesh_gt.verts_list()[0], faces=mesh_gt.faces_list()[0])
+                    break
         model.train()
     print('Done!')
     

@@ -20,6 +20,7 @@ dataset/models
 dataset/off_models
 dataset/off_models_32_x_32
 
+debug_output
 cad_models/
 logs/
 checkpoints/

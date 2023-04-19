@@ -36,7 +36,7 @@ def parse_args():
     parser.add_argument('--model', default='pix2vox', type=str, help="architecture for 3D reconstruction")
     
     # Pre-Training parameters
-    parser.add_argument('--r2n2', default=True, action='store_true')
+    parser.add_argument('--r2n2', default=False, action='store_true')
     parser.add_argument('--r2n2_dir', default='./dataset/r2n2_shapenet_dataset', type=str)
     
     # Training parameters
@@ -56,7 +56,7 @@ def parse_args():
     
     # Directories & Checkpoint
     parser.add_argument('--dataset_path', type=str, default='./dataset')
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_500.pth', type=str)            
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_3000.pth', type=str)            
     parser.add_argument('--out_dir', type=str, default='./inference_outputs')
     
     return parser.parse_args()
