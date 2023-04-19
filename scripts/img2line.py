@@ -39,8 +39,8 @@ def parse_args():
     parser = argparse.ArgumentParser('Image2LineDrawing', add_help=False)
     
     # parser.add_argument('--img_dir', type=str, default='../dataset/shapenet_rotate')
-    parser.add_argument('--img_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2/ShapeNetRendering/03001627')
-    # parser.add_argument('--img_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2')
+    # parser.add_argument('--img_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2/ShapeNetRendering/03001627')
+    parser.add_argument('--img_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2')
     parser.add_argument('--vox_dir', type=str, default='../dataset/r2n2_shapenet_dataset/shapenet')
     # parser.add_argument('--out_dir', type=str, default='../dataset/shapenet_rotate_edge')
     # parser.add_argument('--out_dir', type=str, default='../dataset/r2n2_shapenet_rotate_line')
