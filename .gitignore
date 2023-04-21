@@ -22,6 +22,8 @@ dataset/off_models_32_x_32
 
 debug_output
 cad_models/
+inference_outputs/
+train_output/
 logs/
 checkpoints/
 *.zip
