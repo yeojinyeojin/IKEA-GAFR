@@ -54,7 +54,7 @@ def obj_to_off(verts, faces, dataset_dir, model_num):
     np.savetxt(os.path.join(tmp_dir, "numbers.txt"), numbers_data, fmt="%d")
     np.savetxt(os.path.join(tmp_dir, "verts.txt"), vert_data)
     np.savetxt(os.path.join(tmp_dir, "faces.txt"), face_data, fmt="%d")
-    output_dir = os.path.join(dataset_dir, "off_models")
+    output_dir = os.path.join(dataset_dir, "gt_off_unscaled")
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     
@@ -114,14 +114,14 @@ def main(args):
         
         for step_num, step_data in enumerate(sample['steps']):
             counter += 1
-            if counter < args.start_idx:
-                continue
-            elif counter > (args.start_idx + 130):
-                return
+            #if counter < args.start_idx:
+            #    continue
+            #elif counter > (args.start_idx + 130):
+            #    return
 
-            if args.end_idx:
-                if counter > args.end_idx:
-                    return
+            #if args.end_idx:
+            #    if counter > args.end_idx:
+            #        return
             print(f'Model # {counter}')
             model_verts = None
             model_faces = None
@@ -158,12 +158,16 @@ def main(args):
                     model_faces = torch.cat([model_faces, part_faces], dim = 0)
 
             if args.save_obj_files:
+
+                #Saving in output directory using original file structure by category and model name
                 model_write_dir = os.path.join(args.output_dir, category, name + "/")
                 print(f'Writing model to {model_write_dir}')
                 if not os.path.exists(model_write_dir):
                     os.makedirs(model_write_dir)
                 save_obj(f=os.path.join(model_write_dir, "step_" + str(step_num) + ".obj"), verts=model_verts, faces=model_faces)
-                
+
+
+                #Saving all in one directory "models" using counter as save index
                 model_write_dir = os.path.join(os.path.join(args.dataset_path), "models" + "/")
                 if not os.path.exists(model_write_dir):
                     os.makedirs(model_write_dir)
@@ -173,44 +177,39 @@ def main(args):
                 obj_to_off(model_verts, model_faces, dataset_path, counter)
         
             if args.visualize:
-                # model_textures = torch.ones_like(model_verts)*torch.tensor([1.0, 0.0, 0.0])
-                # model_verts_viz = model_verts + torch.tensor([[0.0, 32.0, 0.0]])
-                # model_mesh = Meshes(
-                #     verts=model_verts_viz.unsqueeze(0),
-                #     faces=model_faces.unsqueeze(0),
-                #     textures=TexturesVertex(model_textures.unsqueeze(0))
-                # )
+                try:
+                    scaled_model_verts, scaled_model_face_data, _ = load_obj(os.path.join(dataset_path, "gt_off_32_x_32", "{:05d}.obj".format(counter)))
+                    scaled_model_verts += torch.tensor([[0.0, 32.0, 0.0]])
+                    scaled_model_textures = torch.ones_like(scaled_model_verts)*torch.tensor([[1.0, 0.0, 0.0]])
+                    scaled_model_mesh = Meshes(
+                        verts=scaled_model_verts.unsqueeze(0),
+                        faces=scaled_model_face_data.verts_idx.unsqueeze(0),
+                        textures=TexturesVertex(scaled_model_textures.unsqueeze(0))
+                    )
 
-                scaled_model_verts, scaled_model_face_data, _ = load_obj(os.path.join(dataset_path, "off_models_32_x_32", "{:05d}.obj".format(counter)))
-                scaled_model_verts += torch.tensor([[0.0, 32.0, 0.0]])
-                scaled_model_textures = torch.ones_like(scaled_model_verts)*torch.tensor([[1.0, 0.0, 0.0]])
-                scaled_model_mesh = Meshes(
-                    verts=scaled_model_verts.unsqueeze(0),
-                    faces=scaled_model_face_data.verts_idx.unsqueeze(0),
-                    textures=TexturesVertex(scaled_model_textures.unsqueeze(0))
-                )
+                except:
+                    scaled_model_mesh = off_to_obj(os.path.join(dataset_path, "gt_off_32_x_32", "{:05d}.off".format(counter)), return_mesh_object=True)
 
-                gt_vox_verts, gt_vox_face_data, _ = load_obj(os.path.join(dataset_path, "gt_voxels_32_x_32", "{:05d}.obj".format(counter)))
-                gt_textures = torch.ones_like(gt_vox_verts)*torch.tensor([[0.0, 1.0, 0.0]])
-                gt_mesh = Meshes(
-                    verts=gt_vox_verts.unsqueeze(0),
-                    faces=gt_vox_face_data.verts_idx.unsqueeze(0),
-                    textures=TexturesVertex(gt_textures.unsqueeze(0))
-                )
+                try:
+                    gt_vox_verts, gt_vox_face_data, _ = load_obj(os.path.join(dataset_path, "gt_voxels_32_x_32", "{:05d}.obj".format(counter)))
+                    gt_textures = torch.ones_like(gt_vox_verts)*torch.tensor([[0.0, 1.0, 0.0]])
+                    gt_mesh = Meshes(
+                        verts=gt_vox_verts.unsqueeze(0),
+                        faces=gt_vox_face_data.verts_idx.unsqueeze(0),
+                        textures=TexturesVertex(gt_textures.unsqueeze(0))
+                    )
+                
+                except:
+                    gt_mesh = off_to_obj(os.path.join(dataset_path, "gt_voxels_32_x_32", "{:05d}.off".format(counter), return_mesh_object=True)
+
                 scene = plot_scene({
-                    "Figure1": {
-                        "Meshes": scaled_model_mesh,
-                        "GT Mesh": gt_mesh
+                    "Figure": {
+                        "Mesh Mesh": scaled_model_mesh,
+                        "Voxel Mesh": gt_mesh
                     }
                 })
                 scene.show()
                 input("Close viz window and press enter to continue to next sample...")
-            
-             #off_to_obj(os.path.join(dataset_path, "gt_voxels_32_x_32", "{:05d}.off".format(counter)))
-             #off_to_obj(os.path.join(dataset_path, "off_models_32_x_32", "{:05d}.off".format(counter)))
-            #off_to_obj(os.path.join(dataset_path, "pix2vox_out_00000", "{:05d}.off".format(counter)))
-            #off_to_obj(os.path.join(dataset_path, "pix2vox_out_09000", "{:05d}.off".format(counter)))
-            off_to_obj(os.path.join(dataset_path, "pix2vox_out_09999", "{:05d}.off".format(counter)))
             
 
     if args.save_off_files:
