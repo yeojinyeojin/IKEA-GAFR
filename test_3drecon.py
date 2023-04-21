@@ -49,6 +49,7 @@ def parse_args():
     parser.add_argument('--resize_h', default=224, type=int)
     parser.add_argument('--use_line_seg', action=argparse.BooleanOptionalAction)
     parser.add_argument('--use_seg_mask', action=argparse.BooleanOptionalAction)
+    parser.add_argument('--category', type=int, default=None, help="category to run inference on")
     
     # Logging parameters
     parser.add_argument('--log_freq', default=1, type=str)
@@ -73,8 +74,10 @@ def main(args):
         model = Pix2Voxel(args).to(args.device)
     model.eval()
     
+    print(args.load_checkpoint)
     checkpoint = torch.load(args.load_checkpoint)
-    start_iter = checkpoint['step']
+    #start_iter = checkpoint['step']
+    start_iter = checkpoint['epoch']
     model.load_state_dict(checkpoint['model_state_dict'])
     print(f"@@@@ Succesfully loaded model iter {start_iter}")
     
@@ -94,7 +97,7 @@ def main(args):
                        views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
         
     else:
-        dataset = IKEAManualStep(args, chairs_only=True)
+        dataset = IKEAManualStep(args)
         
     test_dataloader = DataLoader(dataset=dataset, 
                                 batch_size=args.batch_size, 
@@ -128,7 +131,7 @@ def main(args):
             total_time = time.time() - start_time
             iter_time = time.time() - step_start_time
             print("[%4d/%4d]; ttime: %.0f (%.2f, %.2f); loss: %.3f" % (i, args.max_iter, total_time, read_time, iter_time, loss))
-            
+
             # Volume Visualization
             if args.r2n2:
                 objname = dataset.name_dic[image_test_names.item()]

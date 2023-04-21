@@ -78,13 +78,14 @@ def read_hdf5(file, key = 'tensor'):
 #         return dic
 
 class IKEAManualStep(Dataset):
-    def __init__(self, args, chairs_only=False):
+    def __init__(self, args):
         super().__init__()
 
         datadir = args.dataset_path
         transforms = args.transforms
 
-        self.img_dir = os.path.join(datadir, "images") #Change to images/rgb/ later
+        #self.img_dir = os.path.join(datadir, "images") #Change to images/rgb/ later
+        self.img_dir = os.path.join(datadir, "images", "rgb")
         self.img_paths = sorted(glob(os.path.join(self.img_dir, "**", "*.png"), recursive=True))
         self.img_metadata = json.load(open(os.path.join(datadir, "ind_map.json"))) #Gives image height/width and other useful info
 
@@ -100,22 +101,17 @@ class IKEAManualStep(Dataset):
             self.seg_mask_paths = sorted(glob(os.path.join(self.seg_mask_dir, "**", "*.png"), recursive=True))
 
 
-        self.gt_voxels = read_hdf5(os.path.join(datadir, "off_models_32_x_32", "output.h5"))
+        #self.gt_voxels = read_hdf5(os.path.join(datadir, "off_models_32_x_32", "output.h5"))
+        self.gt_voxels = read_hdf5(os.path.join(datadir, "gt_off_32_x_32", "output.h5"))
 
         self.imgs = []
         self.img_nums = []
         chair_idxs, counter = [], -1
 
         for imgpath, labelpath in zip(self.img_paths, self.label_paths):
-            # print(imgpath, labelpath)
             imgpath = imgpath.split("/")[-1]
             labelpath = labelpath.split("/")[-1]
             
-            ## If chairs_only flag is True, skip if class of current image is not chair
-            imgpath_base = os.path.basename(imgpath)
-            if not (chairs_only and self.img_metadata[imgpath_base]["class_name"] == "Chair"):
-                continue
-
             img = cv2.imread((os.path.join(self.img_dir, imgpath)))
 
             if args.use_line_seg:
@@ -138,8 +134,6 @@ class IKEAManualStep(Dataset):
                     
                     if relevancy == 1: #If bounded region is relevant
                         counter += 1
-                        if category == 1: #If category is chair
-                            chair_idxs.append(counter)
                         
                         bbox_x_center = line[2]
                         bbox_y_center = line[3]
@@ -163,13 +157,18 @@ class IKEAManualStep(Dataset):
                         if transforms is not None:
                             cropped_img = transforms(cropped_img)
 
-                        self.img_nums.append(int(imgpath.split(".")[0]))
-                        self.imgs.append(cropped_img)
+                        if args.category is not None:
+                            if category == args.category:
+                                chair_idxs.append(counter)
+                                self.img_nums.append(int(imgpath.split(".")[0]))
+                                self.imgs.append(cropped_img)
+                        else:
+                            chair_idxs.append(counter)
+                            self.img_nums.append(int(imgpath.split(".")[0]))
+                            self.imgs.append(cropped_img)
     
         assert len(self.img_nums) == len(self.imgs)
-        
-        if chairs_only:
-            self.gt_voxels = self.gt_voxels[chair_idxs]
+        self.gt_voxels = self.gt_voxels[chair_idxs]
 
     def __len__(self):
         return len(self.imgs)
@@ -182,6 +181,7 @@ class IKEAManualStep(Dataset):
         }
         
         return dic
+    
 
 SYNSET_DICT_DIR = Path(utils.__file__).resolve().parent
 MAX_CAMERA_DISTANCE = 1.75  # Constant from R2N2.
