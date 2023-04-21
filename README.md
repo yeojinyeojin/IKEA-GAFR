@@ -79,3 +79,23 @@ The `steps` field contains a list of step annotation in the following format:
     'step_id_global': 10,
 }
 ```
+
+## Augmentation and Pretraining on R2N2_Shapenet_Dataset
+
+1. Download, augment, and format the dataset by following instructions under `dataset`'s `README.md`
+
+2. Pretrain with R2N2 dataset:
+```
+python train_3drecon.py --r2n2 --r2n2_dir [path to r2n2_shapenet_dataset]
+```
+
+3. Finetune with IKEA-Manual dataset:
+```
+python train_3drecon.py --load_checkpoint [path to model checkpoint from previous pretraining] --dataset_path [path to folder that contains "images" and "labels" and "off_models_32_x_32"]
+```
+**NOTE**: add `--chairs_only` flag if you only want to finetune on chairs samples
+
+4. Run inference:
+```
+python test_3dcon.py --dataset_path [path to folder that contains "images" and "labels" and "off_models_32_x_32"] --load_checkpoint [path to model checkpoint from finetuning]
+```

@@ -60,6 +60,7 @@ def parse_args():
     parser.add_argument('--use_line_seg', action=argparse.BooleanOptionalAction)
     parser.add_argument('--use_seg_mask', action=argparse.BooleanOptionalAction)
     parser.add_argument('--debug', default=True, action=argparse.BooleanOptionalAction)
+    parser.add_argument('--chairs_only', default=False, action=argparse.BooleanOptionalAction)
     
     # Logging parameters
     parser.add_argument('--log_freq', default=1000, type=str)
@@ -69,8 +70,8 @@ def parse_args():
     parser.add_argument('--device', default='cuda', type=str) 
     
     # Directories & Checkpoint
-    # parser.add_argument('--load_checkpoint', default=None, type=str)            
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_pretraining/checkpoint_2500.pth', type=str)            
+    parser.add_argument('--load_checkpoint', default=None, type=str)            
+    # parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_pretraining/checkpoint_2500.pth', type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
     parser.add_argument('--debug_dir', type=str, default='./debug_output')
@@ -181,7 +182,7 @@ def main(args):
         dataset = R2N2(shapenet_path, r2n2_path, metadata_path,
                        views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
     else:
-        dataset = IKEAManualStep(args, chairs_only=True)
+        dataset = IKEAManualStep(args, chairs_only=args.chairs_only)
 
     train_set, test_set = random_split(dataset, [args.train_test_split_ratio, 1-args.train_test_split_ratio])
 

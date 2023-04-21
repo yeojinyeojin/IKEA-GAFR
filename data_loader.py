@@ -31,6 +31,7 @@ from pytorch3d.datasets.r2n2.utils import (
 )
 
 import utils_vox
+from scripts.yolo_converter import CATEGORIES
 
 def read_hdf5(file, key = 'tensor'):
     assert os.path.exists(file), 'file %s not found' % file
@@ -83,7 +84,7 @@ class IKEAManualStep(Dataset):
         datadir = args.dataset_path
         transforms = args.transforms
 
-        self.img_dir = os.path.join(datadir, "images", "rgb") #Change to images/rgb/ later
+        self.img_dir = os.path.join(datadir, "images") #Change to images/rgb/ later
         self.img_paths = sorted(glob(os.path.join(self.img_dir, "**", "*.png"), recursive=True))
         self.img_metadata = json.load(open(os.path.join(datadir, "ind_map.json"))) #Gives image height/width and other useful info
 
@@ -99,13 +100,14 @@ class IKEAManualStep(Dataset):
             self.seg_mask_paths = sorted(glob(os.path.join(self.seg_mask_dir, "**", "*.png"), recursive=True))
 
 
-        self.gt_voxels = read_hdf5(os.path.join(datadir, "gt_off_32_x_32", "output.h5"))
+        self.gt_voxels = read_hdf5(os.path.join(datadir, "off_models_32_x_32", "output.h5"))
 
         self.imgs = []
         self.img_nums = []
+        chair_idxs, counter = [], -1
 
         for imgpath, labelpath in zip(self.img_paths, self.label_paths):
-            print(imgpath, labelpath)
+            # print(imgpath, labelpath)
             imgpath = imgpath.split("/")[-1]
             labelpath = labelpath.split("/")[-1]
             
@@ -133,8 +135,12 @@ class IKEAManualStep(Dataset):
 
                     category = line[0]
                     relevancy = line[1]
-
+                    
                     if relevancy == 1: #If bounded region is relevant
+                        counter += 1
+                        if category == 1: #If category is chair
+                            chair_idxs.append(counter)
+                        
                         bbox_x_center = line[2]
                         bbox_y_center = line[3]
                         bbox_w = line[4]
@@ -161,6 +167,9 @@ class IKEAManualStep(Dataset):
                         self.imgs.append(cropped_img)
     
         assert len(self.img_nums) == len(self.imgs)
+        
+        if chairs_only:
+            self.gt_voxels = self.gt_voxels[chair_idxs]
 
     def __len__(self):
         return len(self.imgs)
