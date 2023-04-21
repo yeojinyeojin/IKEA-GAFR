@@ -77,12 +77,12 @@ def read_hdf5(file, key = 'tensor'):
 #         return dic
 
 class IKEAManualStep(Dataset):
-    def __init__(self, args):
+    def __init__(self, args, chairs_only=False):
         super().__init__()
 
         datadir = args.dataset_path
         transforms = args.transforms
-
+        
         self.imgdir = os.path.join(datadir, "images") #Change to images/rgb/ later
         self.imgpaths = sorted(os.listdir(self.imgdir))
         self.img_metadata = json.load(open(os.path.join(datadir, "ind_map.json"))) #Gives image height/width and other useful info
@@ -98,13 +98,17 @@ class IKEAManualStep(Dataset):
             self.seg_mask_dir = os.path.join(datadir, "images", "mask")
             self.seg_mask_paths = sorted(os.listdir(self.seg_mask_dir))
 
-
         self.gt_voxels = read_hdf5(os.path.join(datadir, "off_models_32_x_32", "output.h5"))
 
         self.imgs = []
         self.imgnums = []
-
         for imgpath, labelpath in zip(self.imgpaths, self.labelpaths):
+            
+            ## If chairs_only flag is True, skip if class of current image is not chair
+            imgpath_base = os.path.basename(imgpath)
+            if not (chairs_only and self.img_metadata[imgpath_base]["class_name"] == "Chair"):
+                continue
+            
             img = cv2.imread((os.path.join(self.imgdir, imgpath)))
 
             if args.use_line_seg:
@@ -595,7 +599,7 @@ class R2N2_orig(ShapeNetBase):  # pragma: no cover
         )
         
 class R2N2(ShapeNetBase):
-    def __init__(self, shapenet_dir, r2n2_dir, views_rel_path, voxels_rel_path):
+    def __init__(self, shapenet_dir, r2n2_dir, metadata_file, views_rel_path, voxels_rel_path):
         super().__init__()
         self.shapenet_dir = shapenet_dir
         self.r2n2_dir = r2n2_dir
@@ -607,6 +611,60 @@ class R2N2(ShapeNetBase):
             self.synset_dict = json.load(read_dict)
         # Inverse dictionary mapping synset labels to corresponding offsets.
         self.synset_inv = {label: offset for offset, label in self.synset_dict.items()}
+        
+        # Store synset and model ids of objects mentioned in the splits_file.
+        with open(metadata_file) as splits:
+            metadata_dic = json.load(splits)
+            
+        synset_set = set()
+        # Store lists of views of each model in a list.
+        self.views_per_model_list = []
+        # Store tuples of synset label and total number of views in each category in a list.
+        synset_num_instances = []
+        for synset in metadata_dic.keys():
+            # Examine if the given synset is present in the ShapeNetCore dataset
+            # and is also part of the standard R2N2 dataset.
+            if not (
+                os.path.isdir(os.path.join(shapenet_dir, synset))
+                and synset in self.synset_dict
+            ):
+                msg = (
+                    "Synset category %s from the splits file is either not "
+                    "present in %s or not part of the standard R2N2 dataset."
+                ) % (synset, shapenet_dir)
+                warnings.warn(msg)
+                continue
+
+            synset_set.add(synset)
+            self.synset_start_idxs[synset] = len(self.synset_ids)
+            # Start counting total number of views in the current category.
+            synset_view_count = 0
+            for model in metadata_dic[synset]:
+                # Examine if the given model is present in the ShapeNetCore os.path.
+                shapenet_path = os.path.join(shapenet_dir, synset, model)
+                if not os.path.isdir(shapenet_path):
+                    msg = "Model %s from category %s is not present in %s." % (
+                        model,
+                        synset,
+                        shapenet_dir,
+                    )
+                    warnings.warn(msg)
+                    continue
+                self.synset_ids.append(synset)
+                self.model_ids.append(model)
+
+                model_views = metadata_dic[synset][model]
+                self.views_per_model_list.append(model_views)
+                synset_view_count += len(model_views)
+            synset_num_instances.append((self.synset_dict[synset], synset_view_count))
+            model_count = len(self.synset_ids) - self.synset_start_idxs[synset]
+            self.synset_num_models[synset] = model_count
+        headers = ["category", "#instances"]
+        synset_num_instances.append(("total", sum(n for _, n in synset_num_instances)))
+        print(
+            tabulate(synset_num_instances, headers, numalign="left", stralign="center")
+        )
+        
         
         print("Loading images...")
         name_dic = defaultdict(list)

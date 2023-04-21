@@ -46,7 +46,7 @@ def parse_args():
     parser.add_argument('--model', default='pix2vox', type=str, help="architecture for 3D reconstruction")
     
     # Pre-Training parameters
-    parser.add_argument('--r2n2', default=False, action='store_true')
+    parser.add_argument('--r2n2', default=True, action='store_true')
     parser.add_argument('--r2n2_dir', default='./dataset/r2n2_shapenet_dataset', type=str)
     
     # Training parameters
@@ -70,7 +70,7 @@ def parse_args():
     
     # Directories & Checkpoint
     # parser.add_argument('--load_checkpoint', default=None, type=str)            
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_3000.pth', type=str)            
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_pretraining/checkpoint_2500.pth', type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
     parser.add_argument('--debug_dir', type=str, default='./debug_output')
@@ -176,12 +176,13 @@ def main(args):
 
         shapenet_path = f"{args.r2n2_dir}/shapenet"
         r2n2_path = f"{args.r2n2_dir}/r2n2"
+        metadata_path = f"{args.r2n2_dir}/line_metadata.json"
         
-        dataset = R2N2(shapenet_path, r2n2_path, 
+        dataset = R2N2(shapenet_path, r2n2_path, metadata_path,
                        views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
     else:
-        dataset = IKEAManualStep(args)
-    
+        dataset = IKEAManualStep(args, chairs_only=True)
+
     train_set, test_set = random_split(dataset, [args.train_test_split_ratio, 1-args.train_test_split_ratio])
 
     train_dataloader = DataLoader(dataset=train_set, 
@@ -221,7 +222,7 @@ def main(args):
             for i, name in enumerate(names):
                 save_as_mesh(prediction_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}")
                 save_as_mesh(ground_truth_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}_gt")
-                cv2.imwrite(f"{args.debug_dir}/{step}_{name.item()}_gt.png", images_test[i].permute(0,2,3,1)[0].cpu().numpy())
+                cv2.imwrite(f"{args.debug_dir}/{step}_{name.item()}_gt.png", images_gt[i].permute(0,2,3,1).cpu().numpy())
                 break
 
         loss = calculate_voxel_loss(prediction_3d, ground_truth_3d)

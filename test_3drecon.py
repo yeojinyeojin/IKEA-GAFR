@@ -37,7 +37,7 @@ def parse_args():
     parser.add_argument('--model', default='pix2vox', type=str, help="architecture for 3D reconstruction")
     
     # Pre-Training parameters
-    parser.add_argument('--r2n2', default=True, action='store_true')
+    parser.add_argument('--r2n2', default=False, action='store_true')
     parser.add_argument('--r2n2_dir', default='./dataset/r2n2_shapenet_dataset', type=str)
     
     # Training parameters
@@ -88,12 +88,13 @@ def main(args):
     if args.r2n2:
         shapenet_path = f"{args.r2n2_dir}/shapenet"
         r2n2_path = f"{args.r2n2_dir}/r2n2"
+        metadata_path = f"{args.r2n2_dir}/line_metadata.json"
         
-        dataset = R2N2(shapenet_path, r2n2_path, 
+        dataset = R2N2(shapenet_path, r2n2_path, metadata_path,
                        views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
         
     else:
-        dataset = IKEAManualStep(args)
+        dataset = IKEAManualStep(args, chairs_only=True)
         
     test_dataloader = DataLoader(dataset=dataset, 
                                 batch_size=args.batch_size, 
@@ -136,7 +137,7 @@ def main(args):
                 objname = image_test_names.item()
             save_as_mesh(prediction_3d.unsqueeze(0), f"{args.out_dir}/{objname}")
             save_as_mesh(ground_truth_3d, f"{args.out_dir}/{objname}_gt")
-            cv2.imwrite(f"{args.out_dir}/{objname}_gt.png", images_gt.permute(0,2,3,1)[0].cpu().numpy())
+            cv2.imwrite(f"{args.out_dir}/{objname}_gt.png", images_gt.permute(0,2,3,1)[0].cpu().numpy() * 255.)
             
     if num_batches != 0:
         total_loss /= num_batches
