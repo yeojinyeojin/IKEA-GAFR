@@ -69,7 +69,7 @@ def parse_args():
     parser.add_argument('--device', default='cuda', type=str) 
     
     # Directories & Checkpoint
-    # parser.add_argument('--load_checkpoint', default=None, type=str)            
+    #parser.add_argument('--load_checkpoint', default=None, type=str)            
     parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_3000.pth', type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')

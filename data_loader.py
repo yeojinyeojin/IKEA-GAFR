@@ -83,29 +83,34 @@ class IKEAManualStep(Dataset):
         datadir = args.dataset_path
         transforms = args.transforms
 
-        self.imgdir = os.path.join(datadir, "images") #Change to images/rgb/ later
-        self.imgpaths = sorted(os.listdir(self.imgdir))
+        self.img_dir = os.path.join(datadir, "images", "rgb") #Change to images/rgb/ later
+        self.img_paths = sorted(glob(os.path.join(self.img_dir, "**", "*.png"), recursive=True))
         self.img_metadata = json.load(open(os.path.join(datadir, "ind_map.json"))) #Gives image height/width and other useful info
 
-        self.labeldir = os.path.join(datadir, "labels")
-        self.labelpaths = sorted(os.listdir(self.labeldir))
+        self.label_dir = os.path.join(datadir, "labels")
+        self.label_paths = sorted(glob(os.path.join(self.label_dir, "**", "*.txt"), recursive=True))
 
         if args.use_line_seg: #If we want to concatenate line segmentations to input
             self.line_seg_dir = os.path.join(datadir, "images", "line_seg")
-            self.line_seg_paths = sorted(os.listdir(self.line_seg_dir))
+            self.line_seg_paths = sorted(glob(os.path.join(self.line_seg_dir, "**", "*.png"), recursive=True)) 
         
         if args.use_seg_mask: #If we want to concatenate segmentation masks to input
             self.seg_mask_dir = os.path.join(datadir, "images", "mask")
-            self.seg_mask_paths = sorted(os.listdir(self.seg_mask_dir))
+            self.seg_mask_paths = sorted(glob(os.path.join(self.seg_mask_dir, "**", "*.png"), recursive=True))
 
 
-        self.gt_voxels = read_hdf5(os.path.join(datadir, "off_models_32_x_32", "output.h5"))
+        self.gt_voxels = read_hdf5(os.path.join(datadir, "gt_off_32_x_32", "output.h5"))
 
         self.imgs = []
-        self.imgnums = []
+        self.img_nums = []
 
-        for imgpath, labelpath in zip(self.imgpaths, self.labelpaths):
-            img = cv2.imread((os.path.join(self.imgdir, imgpath)))
+        for imgpath, labelpath in zip(self.img_paths, self.label_paths):
+            print(imgpath, labelpath)
+            imgpath = imgpath.split("/")[-1]
+            labelpath = labelpath.split("/")[-1]
+
+            img = cv2.imread((os.path.join(self.img_dir, imgpath)))
+
 
             if args.use_line_seg:
                 line_seg_img = cv2.imread(os.path.join(self.line_seg_dir, imgpath))
@@ -117,15 +122,19 @@ class IKEAManualStep(Dataset):
             img_data = self.img_metadata[imgpath]
             h, w = img_data["img_h"], img_data["img_w"]
 
-            with open(os.path.join(self.labeldir, labelpath)) as f: #Read in label txt file for specific image
+            with open(os.path.join(self.label_dir, labelpath)) as f: #Read in label txt file for specific image
                 for line in f.readlines(): #For each bbox in image
-                    line = np.array(line.split(" ")).astype(np.float32).reshape(-1) # [class, x_c, y_c, w, h]
+                    line = np.array(line.split(" ")).astype(np.float32).reshape(-1) # [object_class, relevancy_class, x_c, y_c, w, h]
                     line = torch.from_numpy(line)
-                    if line[0] == 1: #If bounded region is relevant
-                        bbox_x_center = line[1]
-                        bbox_y_center = line[2]
-                        bbox_w = line[3]
-                        bbox_h = line[4]
+
+                    category = line[0]
+                    relevancy = line[1]
+
+                    if relevancy == 1: #If bounded region is relevant
+                        bbox_x_center = line[2]
+                        bbox_y_center = line[3]
+                        bbox_w = line[4]
+                        bbox_h = line[5]
 
                         #Convert x_c, y_c, w, h to start_x, start_y, end_x, end_y 
                         start_x = torch.floor(w*(bbox_x_center - bbox_w/2)).to(int).item()
@@ -144,17 +153,17 @@ class IKEAManualStep(Dataset):
                         if transforms is not None:
                             cropped_img = transforms(cropped_img)
 
-                        self.imgnums.append(int(imgpath.split(".")[0]))
+                        self.img_nums.append(int(imgpath.split(".")[0]))
                         self.imgs.append(cropped_img)
     
-        assert len(self.imgnums) == len(self.imgs)
+        assert len(self.img_nums) == len(self.imgs)
 
     def __len__(self):
         return len(self.imgs)
 
     def __getitem__(self, idx):
         dic = {
-            'names': self.imgnums[idx],
+            'names': self.img_nums[idx],
             'images': self.imgs[idx],
             'voxels': self.gt_voxels[idx],
         }
