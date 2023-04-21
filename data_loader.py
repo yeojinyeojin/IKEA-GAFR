@@ -108,9 +108,13 @@ class IKEAManualStep(Dataset):
             print(imgpath, labelpath)
             imgpath = imgpath.split("/")[-1]
             labelpath = labelpath.split("/")[-1]
+            
+            ## If chairs_only flag is True, skip if class of current image is not chair
+            imgpath_base = os.path.basename(imgpath)
+            if not (chairs_only and self.img_metadata[imgpath_base]["class_name"] == "Chair"):
+                continue
 
             img = cv2.imread((os.path.join(self.img_dir, imgpath)))
-
 
             if args.use_line_seg:
                 line_seg_img = cv2.imread(os.path.join(self.line_seg_dir, imgpath))
