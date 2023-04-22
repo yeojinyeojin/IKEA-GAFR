@@ -18,9 +18,10 @@ dataset/shapenet_rotate_edge
 dataset/gt_voxels_32_x_32
 dataset/models
 dataset/off_models
-dataset/off_models_32_x_32
+dataset/gt_off_32_x_32
 
-debug_output
+debug_output/
+inference_outputs/
 cad_models/
 logs/
 checkpoints/

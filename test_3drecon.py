@@ -49,7 +49,8 @@ def parse_args():
     parser.add_argument('--resize_h', default=224, type=int)
     parser.add_argument('--use_line_seg', action=argparse.BooleanOptionalAction)
     parser.add_argument('--use_seg_mask', action=argparse.BooleanOptionalAction)
-    parser.add_argument('--category', type=int, default=None, help="category to run inference on")
+    parser.add_argument('--category', type=int, default=1, help="category to run inference on") #Chairs
+    # parser.add_argument('--category', type=int, default=None, help="category to run inference on")
     
     # Logging parameters
     parser.add_argument('--log_freq', default=1, type=str)
@@ -58,7 +59,7 @@ def parse_args():
     
     # Directories & Checkpoint
     parser.add_argument('--dataset_path', type=str, default='./dataset')
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_pretraining/checkpoint_2500.pth', type=str)            
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_rgb/checkpoint_2000.pth', type=str)            
     parser.add_argument('--out_dir', type=str, default='./inference_outputs')
     
     return parser.parse_args()
@@ -76,8 +77,8 @@ def main(args):
     
     print(args.load_checkpoint)
     checkpoint = torch.load(args.load_checkpoint)
-    #start_iter = checkpoint['step']
-    start_iter = checkpoint['epoch']
+    start_iter = checkpoint['step']
+    # start_iter = checkpoint['epoch']
     model.load_state_dict(checkpoint['model_state_dict'])
     print(f"@@@@ Succesfully loaded model iter {start_iter}")
     
@@ -141,6 +142,7 @@ def main(args):
             save_as_mesh(prediction_3d.unsqueeze(0), f"{args.out_dir}/{objname}")
             save_as_mesh(ground_truth_3d, f"{args.out_dir}/{objname}_gt")
             cv2.imwrite(f"{args.out_dir}/{objname}_gt.png", images_gt.permute(0,2,3,1)[0].cpu().numpy() * 255.)
+            import pdb; pdb.set_trace()
             
     if num_batches != 0:
         total_loss /= num_batches

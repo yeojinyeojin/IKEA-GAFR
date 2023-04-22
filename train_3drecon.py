@@ -6,7 +6,7 @@ from tqdm import tqdm
 from datetime import datetime
 import h5py
 import warnings
-warnings.filterwarnings('ignore', category=UserWarning, message='TypedStorage is deprecated')
+warnings.filterwarnings('ignore')
 
 import cv2
 import numpy as np
@@ -59,7 +59,7 @@ def parse_args():
     parser.add_argument('--resize_h', default=224, type=int)
     parser.add_argument('--use_line_seg', action=argparse.BooleanOptionalAction)
     parser.add_argument('--use_seg_mask', action=argparse.BooleanOptionalAction)
-    parser.add_argument('--debug', default=True, action=argparse.BooleanOptionalAction)
+    parser.add_argument('--debug', default=False, action=argparse.BooleanOptionalAction)
     parser.add_argument('--chairs_only', default=False, action=argparse.BooleanOptionalAction)
     
     # Logging parameters
@@ -70,8 +70,8 @@ def parse_args():
     parser.add_argument('--device', default='cuda', type=str) 
     
     # Directories & Checkpoint
-    parser.add_argument('--load_checkpoint', default=None, type=str)            
-    # parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_pretraining/checkpoint_2500.pth', type=str)            
+    # parser.add_argument('--load_checkpoint', default=None, type=str)            
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_rgb/checkpoint_2000.pth', type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
     parser.add_argument('--debug_dir', type=str, default='./debug_output')
@@ -111,8 +111,9 @@ def main(args):
     create_dir(os.path.join(args.logs_dir, dt))
     args.out_dir = os.path.join(args.out_dir, dt)
     create_dir(args.out_dir)
-    args.debug_dir = os.path.join(args.debug_dir, dt)
-    create_dir(args.debug_dir)
+    if args.debug:
+        args.debug_dir = os.path.join(args.debug_dir, dt)
+        create_dir(args.debug_dir)
     writer = SummaryWriter(os.path.join(args.logs_dir, dt))
     
     ## Load model & optimizer
@@ -180,7 +181,8 @@ def main(args):
         metadata_path = f"{args.r2n2_dir}/line_metadata.json"
         
         dataset = R2N2(shapenet_path, r2n2_path, metadata_path,
-                       views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
+                       views_rel_path="ShapeNetRendering", voxels_rel_path="ShapeNetVoxels")
+                    #    views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
     else:
         dataset = IKEAManualStep(args, chairs_only=args.chairs_only)
 
@@ -213,6 +215,9 @@ def main(args):
         read_start_time = time.time()
 
         feed_dict = next(train_loader)
+        
+        if feed_dict is None:
+            continue
 
         names, images_gt, ground_truth_3d = preprocess(feed_dict, args, dataset)
         read_time = time.time() - read_start_time
@@ -223,7 +228,7 @@ def main(args):
             for i, name in enumerate(names):
                 save_as_mesh(prediction_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}")
                 save_as_mesh(ground_truth_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}_gt")
-                cv2.imwrite(f"{args.debug_dir}/{step}_{name.item()}_gt.png", images_gt[i].permute(0,2,3,1).cpu().numpy())
+                cv2.imwrite(f"{args.debug_dir}/{step}_{name.item()}_gt.png", images_gt[i].permute(1,2,0).cpu().numpy())
                 break
 
         loss = calculate_voxel_loss(prediction_3d, ground_truth_3d)
@@ -261,10 +266,11 @@ def main(args):
                     image_test_names, images_test, ground_truth_3d = preprocess(batch, args, test_set)
                     prediction_3d = model(images_test, args).squeeze()
                     
-                    for i, name in enumerate(image_test_names[:10]):
-                        save_as_mesh(prediction_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}")
-                        save_as_mesh(ground_truth_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}_gt")
-                        cv2.imwrite(f"{args.debug_dir}/{step}_{name.item()}_gt.png", images_test[i].permute(0,2,3,1)[0].cpu().numpy())
+                    if args.debug:
+                        for i, name in enumerate(image_test_names[:10]):
+                            save_as_mesh(prediction_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}")
+                            save_as_mesh(ground_truth_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}_gt")
+                            cv2.imwrite(f"{args.debug_dir}/{step}_{name.item()}_gt.png", images_test[i].permute(0,2,3,1)[0].cpu().numpy())
                     
                     if predictions is None:
                         predictions = prediction_3d

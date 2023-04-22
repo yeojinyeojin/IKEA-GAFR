@@ -84,8 +84,8 @@ class IKEAManualStep(Dataset):
         datadir = args.dataset_path
         transforms = args.transforms
 
-        #self.img_dir = os.path.join(datadir, "images") #Change to images/rgb/ later
-        self.img_dir = os.path.join(datadir, "images", "rgb")
+        self.img_dir = os.path.join(datadir, "images") #Change to images/rgb/ later
+        # self.img_dir = os.path.join(datadir, "images", "rgb")
         self.img_paths = sorted(glob(os.path.join(self.img_dir, "**", "*.png"), recursive=True))
         self.img_metadata = json.load(open(os.path.join(datadir, "ind_map.json"))) #Gives image height/width and other useful info
 
@@ -99,7 +99,6 @@ class IKEAManualStep(Dataset):
         if args.use_seg_mask: #If we want to concatenate segmentation masks to input
             self.seg_mask_dir = os.path.join(datadir, "images", "mask")
             self.seg_mask_paths = sorted(glob(os.path.join(self.seg_mask_dir, "**", "*.png"), recursive=True))
-
 
         #self.gt_voxels = read_hdf5(os.path.join(datadir, "off_models_32_x_32", "output.h5"))
         self.gt_voxels = read_hdf5(os.path.join(datadir, "gt_off_32_x_32", "output.h5"))
@@ -619,6 +618,7 @@ class R2N2_orig(ShapeNetBase):  # pragma: no cover
 class R2N2(ShapeNetBase):
     def __init__(self, shapenet_dir, r2n2_dir, metadata_file, views_rel_path, voxels_rel_path):
         super().__init__()
+        self.load_textures = False
         self.shapenet_dir = shapenet_dir
         self.r2n2_dir = r2n2_dir
         self.views_rel_path = views_rel_path
@@ -756,7 +756,7 @@ class R2N2(ShapeNetBase):
         try:
             verts, faces, textures = self._load_mesh(modelpath)
         except Exception:
-            st()
+            verts, faces, textures = self._load_mesh(os.path.join(os.path.dirname(modelpath), "model.obj"))
         
         voxf = os.path.join(self.voxelpaths[idx], "model.binvox")
         with open(voxf, "rb") as f:
