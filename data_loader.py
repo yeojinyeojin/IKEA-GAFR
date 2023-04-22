@@ -733,7 +733,6 @@ class R2N2(ShapeNetBase):
                 # self.voxels.append(voxel)
                 self.voxelpaths.append(objf)
         
-        # self.name_dic = {label: offset  for objname, numlist in name_dic.items()}
         self.name_dic = {}
         for objname, numlist in name_dic.items():
             for num in numlist:

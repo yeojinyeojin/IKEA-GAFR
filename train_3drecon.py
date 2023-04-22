@@ -5,6 +5,7 @@ import argparse
 from tqdm import tqdm
 from datetime import datetime
 import h5py
+import json
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -66,13 +67,13 @@ def parse_args():
     # Logging parameters
     parser.add_argument('--log_freq', default=1000, type=str)
     parser.add_argument('--save_freq', default=500, type=int)    
-    parser.add_argument('--eval_freq', default=1000, type=int)
+    parser.add_argument('--eval_freq', default=10, type=int)
     
     parser.add_argument('--device', default='cuda', type=str) 
     
     # Directories & Checkpoint
     # parser.add_argument('--load_checkpoint', default=None, type=str)            
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_1000.pth', type=str)            
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_rgb_pretraining/checkpoint_10000.pth', type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
     parser.add_argument('--debug_dir', type=str, default='./debug_output')
@@ -131,6 +132,9 @@ def main(args):
         start_iter = checkpoint['step']
         print(f"@@@@ Succesfully loaded iter {start_iter}")
     else:
+        start_iter = 0
+        
+    if start_iter == 9999:
         start_iter = 0
         
     ## Load dataset
@@ -204,7 +208,13 @@ def main(args):
     
     print (f"@@@@ Successfully loaded data: train_set {len(train_set)} | test_set {len(test_set)}")
     
-    
+    # if args.r2n2:
+    #     with open(os.path.join(args.out_dir, "test_samples.json"), "w") as f:
+    #         json.dump(test_set.dataset.name_dic, indent=4)
+    # else:
+    #     with open(os.path.join(args.out_dir, "test_samples.json"), "w") as f:
+    #         for objname in test_set.dataset.img_nums:
+    #             f.write(str(objname) + '\n')
     
     print("@@@@ Starting training!")
     
@@ -294,6 +304,14 @@ def main(args):
                 print("Loss at step {}: {}".format(step, total_loss))
                 writer.add_scalar("eval_loss", total_loss, step)
                 
+                if args.r2n2:
+                    with open(os.path.join(args.out_dir, "test_samples.json"), "w") as f:
+                        json.dump(test_set.dataset.name_dic, indent=4)
+                else:
+                    with open(os.path.join(args.out_dir, "test_samples.txt"), "w") as f:
+                        for objname in image_names:
+                            f.write(str(objname.item()) + '\n')
+                
                 # np.savetxt(os.path.join(args.logs_dir, dt, 'output_{:05d}_names.txt'.format(step)), image_names.cpu().numpy(), fmt="%d")
                 # output_file = h5py.File(os.path.join(args.logs_dir, dt, 'output_{:05d}.h5'.format(step)), 'w')
                 # output_file.create_dataset('tensor', data=predictions.cpu().numpy())
@@ -301,12 +319,13 @@ def main(args):
                 
                 if prediction_3d.ndim == 3:
                     prediction_3d = prediction_3d.unsqueeze(0)
+                    # images_test = images_test.unsqueeze(0)
                 for i, name in enumerate(image_test_names):
                     mesh = cubify(prediction_3d[i].unsqueeze(0), thresh=0.5)
                     save_obj(f"{args.out_dir}/{step}_{name.item()}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
                     mesh_gt = cubify(ground_truth_3d[i].unsqueeze(0), thresh=0.5)
                     save_obj(f"{args.out_dir}/{step}_{name.item()}_gt.obj", verts=mesh_gt.verts_list()[0], faces=mesh_gt.faces_list()[0])
-                    cv2.imwrite(f"{args.out_dir}/{step}_{name.item()}_gt.png", images_test[i].permute(0,2,3,1)[0].cpu().numpy())
+                    cv2.imwrite(f"{args.out_dir}/{step}_{name.item()}_gt.png", images_test[i].permute(1,2,0).cpu().numpy() * 255.)
                     break
         model.train()
     print('Done!')
