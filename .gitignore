@@ -23,6 +23,8 @@ dataset/gt_off_32_x_32
 debug_output/
 inference_outputs/
 cad_models/
+inference_outputs/
+train_output/
 logs/
 checkpoints/
 *.zip
