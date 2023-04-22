@@ -46,7 +46,7 @@ def parse_args():
     parser.add_argument('--model', default='pix2vox', type=str, help="architecture for 3D reconstruction")
     
     # Pre-Training parameters
-    parser.add_argument('--r2n2', default=True, action='store_true')
+    parser.add_argument('--r2n2', default=False, action='store_true')
     parser.add_argument('--r2n2_dir', default='./dataset/r2n2_shapenet_dataset', type=str)
     
     # Training parameters
@@ -54,13 +54,14 @@ def parse_args():
     parser.add_argument('--batch_size', default=32, type=int)
     parser.add_argument('--num_workers', default=2, type=int)
     parser.add_argument('--lr', default=4e-4, type=str)
-    parser.add_argument('--train_test_split_ratio', default=0.7, type=float)
+    parser.add_argument('--train_test_split_ratio', default=0.99, type=float)
     parser.add_argument('--resize_w', default=224, type=int)
     parser.add_argument('--resize_h', default=224, type=int)
     parser.add_argument('--use_line_seg', action=argparse.BooleanOptionalAction)
     parser.add_argument('--use_seg_mask', action=argparse.BooleanOptionalAction)
     parser.add_argument('--debug', default=False, action=argparse.BooleanOptionalAction)
-    parser.add_argument('--chairs_only', default=False, action=argparse.BooleanOptionalAction)
+    # parser.add_argument('--chairs_only', default=False, action=argparse.BooleanOptionalAction)
+    parser.add_argument('--category', type=int, default=1, help="category to run inference on") #Chairs
     
     # Logging parameters
     parser.add_argument('--log_freq', default=1000, type=str)
@@ -71,7 +72,7 @@ def parse_args():
     
     # Directories & Checkpoint
     # parser.add_argument('--load_checkpoint', default=None, type=str)            
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_rgb/checkpoint_2000.pth', type=str)            
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/checkpoint_1000.pth', type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
     parser.add_argument('--debug_dir', type=str, default='./debug_output')
@@ -184,7 +185,7 @@ def main(args):
                        views_rel_path="ShapeNetRendering", voxels_rel_path="ShapeNetVoxels")
                     #    views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
     else:
-        dataset = IKEAManualStep(args, chairs_only=args.chairs_only)
+        dataset = IKEAManualStep(args)
 
     train_set, test_set = random_split(dataset, [args.train_test_split_ratio, 1-args.train_test_split_ratio])
 
@@ -197,15 +198,18 @@ def main(args):
                             batch_size=args.batch_size, 
                             shuffle=True, 
                             num_workers=args.num_workers)
-
+    
     train_loader = iter(train_dataloader)
     test_loader = test_dataloader
     
     print (f"@@@@ Successfully loaded data: train_set {len(train_set)} | test_set {len(test_set)}")
     
+    
+    
     print("@@@@ Starting training!")
     
     start_time = time.time()
+    # for step in range(0, args.max_iter):
     for step in range(start_iter, args.max_iter):
         step_start_time = time.time()
 
@@ -230,8 +234,11 @@ def main(args):
                 save_as_mesh(ground_truth_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}_gt")
                 cv2.imwrite(f"{args.debug_dir}/{step}_{name.item()}_gt.png", images_gt[i].permute(1,2,0).cpu().numpy())
                 break
-
+        
+        if prediction_3d.ndim == 3:
+            prediction_3d = prediction_3d.unsqueeze(0)
         loss = calculate_voxel_loss(prediction_3d, ground_truth_3d)
+        # loss = calculate_voxel_loss(prediction_3d, ground_truth_3d)
 
         optimizer.zero_grad()
         loss.backward()
@@ -287,17 +294,20 @@ def main(args):
                 print("Loss at step {}: {}".format(step, total_loss))
                 writer.add_scalar("eval_loss", total_loss, step)
                 
-                np.savetxt(os.path.join(args.logs_dir, dt, 'output_{:05d}_names.txt'.format(step)), image_names.cpu().numpy(), fmt="%d")
-                output_file = h5py.File(os.path.join(args.logs_dir, dt, 'output_{:05d}.h5'.format(step)), 'w')
-                output_file.create_dataset('tensor', data=predictions.cpu().numpy())
-                output_file.close()
+                # np.savetxt(os.path.join(args.logs_dir, dt, 'output_{:05d}_names.txt'.format(step)), image_names.cpu().numpy(), fmt="%d")
+                # output_file = h5py.File(os.path.join(args.logs_dir, dt, 'output_{:05d}.h5'.format(step)), 'w')
+                # output_file.create_dataset('tensor', data=predictions.cpu().numpy())
+                # output_file.close()
                 
-                # for i, name in enumerate(image_test_names):
-                #     mesh = cubify(prediction_3d[i].unsqueeze(0), thresh=0.5)
-                #     save_obj(f"{args.out_dir}/{step}_{name.item()}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
-                #     mesh_gt = cubify(ground_truth_3d[i].unsqueeze(0), thresh=0.5)
-                #     save_obj(f"{args.out_dir}/{step}_{name.item()}_gt.obj", verts=mesh_gt.verts_list()[0], faces=mesh_gt.faces_list()[0])
-                #     break
+                if prediction_3d.ndim == 3:
+                    prediction_3d = prediction_3d.unsqueeze(0)
+                for i, name in enumerate(image_test_names):
+                    mesh = cubify(prediction_3d[i].unsqueeze(0), thresh=0.5)
+                    save_obj(f"{args.out_dir}/{step}_{name.item()}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
+                    mesh_gt = cubify(ground_truth_3d[i].unsqueeze(0), thresh=0.5)
+                    save_obj(f"{args.out_dir}/{step}_{name.item()}_gt.obj", verts=mesh_gt.verts_list()[0], faces=mesh_gt.faces_list()[0])
+                    cv2.imwrite(f"{args.out_dir}/{step}_{name.item()}_gt.png", images_test[i].permute(0,2,3,1)[0].cpu().numpy())
+                    break
         model.train()
     print('Done!')
     

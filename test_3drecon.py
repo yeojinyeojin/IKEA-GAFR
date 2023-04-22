@@ -59,7 +59,7 @@ def parse_args():
     
     # Directories & Checkpoint
     parser.add_argument('--dataset_path', type=str, default='./dataset')
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_rgb/checkpoint_2000.pth', type=str)            
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_rgb_pretraining_ikeaman_finetuning/checkpoint_10000.pth', type=str)            
     parser.add_argument('--out_dir', type=str, default='./inference_outputs')
     
     return parser.parse_args()

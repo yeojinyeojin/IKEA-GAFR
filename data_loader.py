@@ -132,6 +132,7 @@ class IKEAManualStep(Dataset):
                     relevancy = line[1]
                     
                     if relevancy == 1: #If bounded region is relevant
+                        
                         counter += 1
                         
                         bbox_x_center = line[2]
@@ -167,7 +168,8 @@ class IKEAManualStep(Dataset):
                             self.imgs.append(cropped_img)
     
         assert len(self.img_nums) == len(self.imgs)
-        self.gt_voxels = self.gt_voxels[chair_idxs]
+        if args.category is not None:
+            self.gt_voxels = self.gt_voxels[chair_idxs]
 
     def __len__(self):
         return len(self.imgs)
