@@ -1,6 +1,10 @@
 # Dataset metadata
 
-Dataset600 (filtered version of the full ikea_man dataset with 600 annotations instead of 953) is [here](https://drive.google.com/file/d/1BzTZpGj_EgfrdsDYBFvLb0nBfBpTz_8C/view?usp=share_link)
+- `Dataset600`: filtered version of the full ikea_man dataset with 600 annotations instead of 953 is [here](https://drive.google.com/file/d/1BzTZpGj_EgfrdsDYBFvLb0nBfBpTz_8C/view?usp=share_link)
+- `ShapenetRotate`: Rotated version of `Shapenet` dataset with 73024 images is [here](https://drive.google.com/file/d/1DBe7K1p8v07HTQ_Jfg_lAVsWTmuzLBlO/view?usp=share_link)
+- `ShapenetRotateSketch`: Sketched version of `ShapenetRotate' dataset with 73024 images is [here](https://drive.google.com/file/d/1jQra9LeUnitPCmuNyV22esluGTzek2LQ/view?usp=share_link)
+- `R2N2_sketch`: Sketched version of `R2N2' ShapenetCore subset dataset with 67770 images is [here](https://drive.google.com/file/d/1kXH2nw5v8fsBK8bvmI3N_xFChjVMiOUO/view?usp=sharing)
+
 
 # Data Augmentation Using R2N2_Shapenet_Dataset
 
