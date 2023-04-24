@@ -101,7 +101,18 @@ def calculate_voxel_loss(voxel_src, voxel_tgt):
 def save_as_mesh(prediction_3d, save_name, cubify_thresh=0.3):
     mesh = cubify(prediction_3d, thresh=cubify_thresh)
     save_obj(f"{save_name}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
-    
+
+
+def calculate_voxel_iou(voxel_src, voxel_tgt):
+    # assuming voxel_src, voxel_tgt are binarized voxel grids
+
+    intersection = torch.sum(voxel_tgt.mul(voxel_src)).float()
+    union = torch.sum(torch.ge(voxel_tgt.add(voxel_src), 1)).float()
+
+    iou_score = (intersection / union).item()
+    return iou_score
+
+
 def main(args):
     ## Create directories for checkpoints and tensorboard logs
     args.checkpoint_dir = os.path.join(args.checkpoint_dir, args.model)
@@ -301,6 +312,7 @@ def main(args):
                     
                     num_batches += 1
                     total_loss += calculate_voxel_loss(prediction_3d, ground_truth_3d.squeeze()).cpu().item()
+
 
                 if num_batches != 0:
                     total_loss /= num_batches
