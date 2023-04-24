@@ -311,13 +311,13 @@ def main(args):
                     obj_names = []
                     for obj_num in image_names:
                         obj_names.append(f"{test_set.dataset.name_dic[obj_num.item()]}_{obj_num.item()%15}")
-                    with open(os.path.join(args.out_dir, "test_samples.txt"), "a") as f:
+                    with open(os.path.join(args.checkpoint_dir, "test_samples.txt"), "a") as f:
                         for objname in obj_names:
                             f.write(str(objname) + '\n')
-                    # with open(os.path.join(args.out_dir, "test_samples.json"), "a") as f:
+                    # with open(os.path.join(args.checkpoint_dir, "test_samples.json"), "a") as f:
                     #     json.dump(test_set.dataset.name_dic.values(), f, indent=4)
                 else:
-                    with open(os.path.join(args.out_dir, "test_samples.txt"), "a") as f:
+                    with open(os.path.join(args.checkpoint_dir, "test_samples.txt"), "a") as f:
                         for objname in image_names:
                             f.write(str(objname.item()) + '\n')
                 

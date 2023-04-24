@@ -60,7 +60,7 @@ def parse_args():
     
     # Directories & Checkpoint
     parser.add_argument('--dataset_path', type=str, default='./dataset')
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_sketch_pretraining_ikeaman_finetuning/checkpoint_10000.pth', type=str)            
+    parser.add_argument('--checkpoint_dir', default='./checkpoints/pix2vox/r2n2_sketch_pretraining_ikeaman_finetuning', type=str)            
     parser.add_argument('--out_dir', type=str, default='./inference_outputs/sketch')
     
     return parser.parse_args()
@@ -76,12 +76,16 @@ def main(args):
         model = Pix2Voxel(args).to(args.device)
     model.eval()
     
-    print(args.load_checkpoint)
-    checkpoint = torch.load(args.load_checkpoint)
+    print(args.checkpoint_dir)
+    checkpoint = torch.load(f"{args.checkpoint_dir}/checkpoint_10000.pth")
     start_iter = checkpoint['step']
     # start_iter = checkpoint['epoch']
     model.load_state_dict(checkpoint['model_state_dict'])
     print(f"@@@@ Succesfully loaded model iter {start_iter}")
+    
+    with open(f"{args.checkpoint_dir}/test_samples.txt", "r") as f:
+        data = f.read()
+        test_data_idx = data.split("\n")
     
     ## Load dataset
     transform = transforms.Compose([
@@ -118,7 +122,7 @@ def main(args):
             image_test_names, images_gt, ground_truth_3d = preprocess(batch, args, dataset)
             read_time = time.time() - read_start_time
             
-            if image_test_names.item() not in [442,528,133,320,131,236]:
+            if image_test_names.item() not in test_data_idx:
                 continue
         
             prediction_3d = model(images_gt, args).squeeze()
