@@ -12,6 +12,7 @@ from pytorch3d.transforms import Rotate, Translate, matrix_to_euler_angles
 from pytorch3d.renderer import TexturesVertex, look_at_view_transform
 from pytorch3d.renderer.cameras import FoVPerspectiveCameras
 from pytorch3d.vis.plotly_vis import plot_scene
+from pytorch3d.ops import sample_points_from_meshes
 
 # p3d_coordinate_frame = Rotate(torch.tensor([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
 # opencv_coordinate_frame = Rotate(torch.tensor([[-1, 0, 0], [0, -1, 0], [0, 0, 1]]))
@@ -97,6 +98,13 @@ def off_to_obj(off_filepath, return_mesh_object=False):
 
         return mesh
 
+def make_homogenous(points):
+    points = points.reshape(-1, 3)
+    points = torch.cat([points, torch.ones((len(points), 1))], dim = 1)
+    assert points.shape[1] == 4
+
+    return points
+
 def main(args):
     dataset_path = args.dataset_path
     data_json = open(os.path.join(dataset_path, "main_data.json"))
@@ -114,14 +122,6 @@ def main(args):
         
         for step_num, step_data in enumerate(sample['steps']):
             counter += 1
-            #if counter < args.start_idx:
-            #    continue
-            #elif counter > (args.start_idx + 130):
-            #    return
-
-            #if args.end_idx:
-            #    if counter > args.end_idx:
-            #        return
             print(f'Model # {counter}')
             model_verts = None
             model_faces = None
@@ -129,25 +129,49 @@ def main(args):
             step_part_nums, step_part_idxs = preprocess_part_idxs(step_data['parts'])
             extrinsics = step_data['extrinsics']
             intrinsics = step_data['intrinsics']
-
+            canvas = None
             for part_idx, part_num in zip(step_part_idxs, step_part_nums):
                 part_num = int(part_num)
                 part_path = os.path.join(model_dir, part_names[part_num]) # we want to index into part_names with the model_number as that will be the correct index
                 part_verts, part_face_data, _ = load_obj(part_path)
                 part_faces = part_face_data.verts_idx
                 if args.prediction_frame == "object-centric":
+                    part_intrinsics = torch.tensor(intrinsics[part_idx])
+                    if canvas is None:
+                        canvas = np.zeros((int(part_intrinsics[1, -1]*2), int(part_intrinsics[0, -1]*2), 3))
                     part_extrinsics = torch.tensor(extrinsics[part_idx]) # we want to index into extrinsics in the same order the parts are presented
+                    # part_extrinsics[:-1, :-1] = torch.eye(3)
                     part_R = Rotate(part_extrinsics[:-1, :-1]) #Note coordinate system and how transformations are applied, check under Transform3D class https://pytorch3d.readthedocs.io/en/latest/modules/transforms.html
                     part_t = Translate(torch.fliplr((part_extrinsics[:-1, -1]/100.0).reshape(-1, 3))) #Divide by 100 (unit issue) and flip (coordinate system issue)???????                
 
                     if step_num == 0:
-                        part_Rt = part_R.compose(part_t) #rotate then translate
+                        # part_Rt = part_R.compose(part_t) #rotate then translate
+                        part_Rt = part_extrinsics
                     else:
                         if prev_part_transforms[part_num] is not None:
-                            part_Rt = prev_part_transforms[part_num].compose(part_R).compose(part_t) #compose with previous transform
+                            part_Rt = prev_part_transforms[part_num] @ part_Rt
+                            # part_Rt = prev_part_transforms[part_num].compose(part_R).compose(part_t) #compose with previous transform
                     
                     prev_part_transforms[part_num] = part_Rt
-                    part_verts = part_Rt.transform_points(part_verts)
+                    # part_verts = part_Rt.transform_points(part_verts)
+                    part_verts = part_extrinsics @ make_homogenous(part_verts).T
+                    part_verts = part_verts.T
+                    part_verts = part_verts[:, :-1]/part_verts[:, -1].reshape(-1, 1)
+                    textures = torch.zeros_like(part_verts) + torch.tensor([0.7, 0.7, 1.0])
+                    part_mesh = Meshes(
+                        verts=part_verts.unsqueeze(0),
+                        faces=part_faces.unsqueeze(0),
+                        textures=TexturesVertex(textures.unsqueeze(0))
+                    )
+                    if args.render:
+                        points = sample_points_from_meshes(part_mesh, num_samples=10000).squeeze()
+                        for v in points:
+                            v = v.reshape(-1, 1)
+                            v_proj = part_intrinsics @ v
+                            coords = (v_proj[:-1]/v_proj[-1]).to(int)
+                            x_coord = coords[0].item()
+                            y_coord = coords[1].item()
+                            canvas[y_coord, x_coord] = 255
                 
                 if model_verts is None:
                     model_verts = part_verts
@@ -200,8 +224,8 @@ def main(args):
                     )
                 
                 except:
-                    gt_mesh = off_to_obj(os.path.join(dataset_path, "gt_voxels_32_x_32", "{:05d}.off".format(counter), return_mesh_object=True)
-
+                    gt_mesh = off_to_obj(os.path.join(dataset_path, "gt_voxels_32_x_32", "{:05d}.off".format(counter)), return_mesh_object=True)
+                
                 scene = plot_scene({
                     "Figure": {
                         "Mesh Mesh": scaled_model_mesh,
@@ -211,6 +235,9 @@ def main(args):
                 scene.show()
                 input("Close viz window and press enter to continue to next sample...")
             
+            if args.render:
+                cv2.imshow('f', canvas)
+                cv2.waitKey(0)
 
     if args.save_off_files:
         shutil.rmtree("./tmp")
@@ -226,5 +253,6 @@ if __name__ == '__main__':
     parser.add_argument('--visualize', action=ap.BooleanOptionalAction)
     parser.add_argument('--start_idx', type=int, default=0)
     parser.add_argument('--end_idx', type=int, default=None)
+    parser.add_argument('--render', action=ap.BooleanOptionalAction, help="include to see 2d rendering of model in PDF pose")
     args = parser.parse_args()
     main(args)
