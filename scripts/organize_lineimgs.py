@@ -11,62 +11,64 @@ def parse_args():
     
     parser = argparse.ArgumentParser('Organize_LineImgs', add_help=False)
     
-    parser.add_argument('--img_dir', type=str, default='../dataset/shapenet_rotate_edge')
+    parser.add_argument('--img_dir', type=str, default='../dataset/shapenet_rotate_sketch')
     parser.add_argument('--orig_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2/ShapeNetRendering/03001627')
-    parser.add_argument('--orig_line_dir', type=str, default=None)
+    parser.add_argument('--orig_line_dir', type=str, default='../dataset/r2n2_sketch/ShapeNetRendering/03001627')
     # parser.add_argument('--orig_line_dir', type=str, default='../dataset/r2n2_shapenet_original_line')
-    parser.add_argument('--out_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2/LineDrawings/03001627')
+    parser.add_argument('--out_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2/Sketches/03001627')
     parser.add_argument('--metadata_path', type=str, default='../dataset/r2n2_shapenet_dataset/line_metadata.json')
     parser.add_argument('--split', action='store_true', default=False)
+    parser.add_argument('--num_sample_per_object', type=int, default=10)
     
     return parser.parse_args()
 
 def main(args):
-    # files = glob(f"{args.img_dir}/*", recursive=True)
-    # files.sort()
+    files = glob(f"{args.img_dir}/*", recursive=True)
+    files.sort()
 
-    # for file in tqdm(files, total=len(files)):
-    #     ## parse name of image
-    #     obj_name = os.path.basename(file)
+    for file in tqdm(files, total=len(files)):
+        ## parse name of image
+        obj_name = os.path.basename(file)
         
-    #     ## create output directory
-    #     outdir = os.path.join(args.out_dir, obj_name, "rendering")
-    #     os.makedirs(outdir, exist_ok=True)
-    #     dic = {}
+        ## create output directory
+        outdir = os.path.join(args.out_dir, obj_name, "rendering")
+        os.makedirs(outdir, exist_ok=True)
+        dic = {}
         
-    #     for count, img in enumerate(glob(f"{file}/*.png")):
-    #         name = os.path.basename(img)
-    #         dic[count+10] = name[:-4]
-    #         out_name = "%02d.png" % (count+10)
+        imgs = glob(f"{file}/*.png")
+        for count, img in enumerate(imgs):
+            name = os.path.basename(img)
+            dic[count+10] = name[:-4]
+            out_name = "%02d.png" % (count+10)
             
-    #         ## move image
-    #         shutil.copy(img, os.path.join(outdir, out_name))
+            ## move image
+            shutil.copy(img, os.path.join(outdir, out_name))
             
-    #         if count == 4:
-    #             name = os.path.basename(img)
-    #             dic[count+10] = name[:-4]
-    #             out_name = "%02d.png" % (count+10)
+            if (count == (args.num_sample_per_object - 1)) or (len(imgs) < args.num_sample_per_object and count == len(imgs)):
+                name = os.path.basename(img)
+                dic[count+10] = name[:-4]
+                out_name = "%02d.png" % (count+10)
                 
-    #             ## move image
-    #             shutil.copy(img, os.path.join(outdir, out_name))
+                ## move image
+                shutil.copy(img, os.path.join(outdir, out_name))
             
-    #             ## save mapping as json file
-    #             with open(os.path.join(outdir, "name_map.json"), "w") as outdic:
-    #                 json.dump(dic, outdic, indent=4)
+                ## save mapping as json file
+                with open(os.path.join(outdir, "name_map.json"), "w") as outdic:
+                    json.dump(dic, outdic, indent=4)
                 
-    #             ## move line images of original data
-    #             if args.orig_line_dir is not None:
-    #                 orig_imgs = glob(f"{args.orig_line_dir}/{obj_name}/*.png")
-    #                 for orig in orig_imgs:
-    #                     if 'x' in orig:
-    #                         continue
-    #                     shutil.copy(orig, f"{outdir}/{os.path.basename(orig)}")
+                ## move line images of original data
+                if args.orig_line_dir is not None:
+                    orig_imgs = glob(f"{args.orig_line_dir}/{obj_name}/**/*.png")
+                    for orig in orig_imgs:
+                        if 'x' in orig:
+                            continue
+                        shutil.copy(orig, f"{outdir}/{os.path.basename(orig)}")
 
-    #             ## move additional data
-    #             src = os.path.join(args.orig_dir, obj_name, "rendering")
-    #             shutil.copy(os.path.join(src, "feats.npy"), os.path.join(outdir, "feats.npy"))
-    #             shutil.copy(os.path.join(src, "rendering_metadata.txt"), os.path.join(outdir, "rendering_metadata.txt"))
-    #             shutil.copy(os.path.join(src, "renderings.txt"), os.path.join(outdir, "renderings.txt"))
+                ## move additional data
+                src = os.path.join(args.orig_dir, obj_name, "rendering")
+                shutil.copy(os.path.join(src, "feats.npy"), os.path.join(outdir, "feats.npy"))
+                shutil.copy(os.path.join(src, "rendering_metadata.txt"), os.path.join(outdir, "rendering_metadata.txt"))
+                shutil.copy(os.path.join(src, "renderings.txt"), os.path.join(outdir, "renderings.txt"))
         
     ## create split json file
     traindic = defaultdict(list)

@@ -19,6 +19,8 @@ dataset/gt_voxels_32_x_32
 dataset/models
 dataset/off_models
 dataset/gt_off_32_x_32
+dataset/shapenet_rotate_sketch
+dataset/r2n2_sketch
 
 debug_output/
 inference_outputs/

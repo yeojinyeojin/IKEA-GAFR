@@ -51,6 +51,7 @@ def parse_args():
     parser.add_argument('--use_seg_mask', action=argparse.BooleanOptionalAction)
     parser.add_argument('--category', type=int, default=1, help="category to run inference on") #Chairs
     # parser.add_argument('--category', type=int, default=None, help="category to run inference on")
+    parser.add_argument('--cubify_ths', type=float, default=0.2, help="threhold used for cubify")
     
     # Logging parameters
     parser.add_argument('--log_freq', default=1, type=str)
@@ -59,8 +60,8 @@ def parse_args():
     
     # Directories & Checkpoint
     parser.add_argument('--dataset_path', type=str, default='./dataset')
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_rgb_pretraining_ikeaman_finetuning/checkpoint_10000.pth', type=str)            
-    parser.add_argument('--out_dir', type=str, default='./inference_outputs')
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_sketch_pretraining_ikeaman_finetuning/checkpoint_10000.pth', type=str)            
+    parser.add_argument('--out_dir', type=str, default='./inference_outputs/sketch')
     
     return parser.parse_args()
 
@@ -116,6 +117,9 @@ def main(args):
             read_start_time = time.time()
             image_test_names, images_gt, ground_truth_3d = preprocess(batch, args, dataset)
             read_time = time.time() - read_start_time
+            
+            if image_test_names.item() not in [442,528,133,320,131,236]:
+                continue
         
             prediction_3d = model(images_gt, args).squeeze()
             if predictions is None:
@@ -139,8 +143,8 @@ def main(args):
                 objname += f"_{image_test_names.item()}"
             else:
                 objname = image_test_names.item()
-            save_as_mesh(prediction_3d.unsqueeze(0), f"{args.out_dir}/{objname}")
-            save_as_mesh(ground_truth_3d, f"{args.out_dir}/{objname}_gt")
+            save_as_mesh(prediction_3d.unsqueeze(0), f"{args.out_dir}/{objname}", args.cubify_ths)
+            save_as_mesh(ground_truth_3d, f"{args.out_dir}/{objname}_gt", args.cubify_ths)
             cv2.imwrite(f"{args.out_dir}/{objname}_gt.png", images_gt.permute(0,2,3,1)[0].cpu().numpy() * 255.)
             import pdb; pdb.set_trace()
             

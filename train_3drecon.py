@@ -19,7 +19,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 from torchvision import models as torchvision_models
-from  pytorch3d.datasets.r2n2.utils import collate_batched_R2N2
+from pytorch3d.datasets.r2n2.utils import collate_batched_R2N2
 from pytorch3d.io import load_obj, save_obj
 from pytorch3d.ops import cubify
 from pytorch3d.datasets.r2n2.utils import (
@@ -51,11 +51,11 @@ def parse_args():
     parser.add_argument('--r2n2_dir', default='./dataset/r2n2_shapenet_dataset', type=str)
     
     # Training parameters
-    parser.add_argument('--max_iter', default=10000, type=int)
+    parser.add_argument('--max_iter', default=100, type=int)
     parser.add_argument('--batch_size', default=32, type=int)
     parser.add_argument('--num_workers', default=2, type=int)
     parser.add_argument('--lr', default=4e-4, type=str)
-    parser.add_argument('--train_test_split_ratio', default=0.99, type=float)
+    parser.add_argument('--train_test_split_ratio', default=0.9, type=float)
     parser.add_argument('--resize_w', default=224, type=int)
     parser.add_argument('--resize_h', default=224, type=int)
     parser.add_argument('--use_line_seg', action=argparse.BooleanOptionalAction)
@@ -63,9 +63,10 @@ def parse_args():
     parser.add_argument('--debug', default=False, action=argparse.BooleanOptionalAction)
     # parser.add_argument('--chairs_only', default=False, action=argparse.BooleanOptionalAction)
     parser.add_argument('--category', type=int, default=1, help="category to run inference on") #Chairs
+    parser.add_argument('--cubify_ths', type=float, default=0.2, help="threhold used for cubify")
     
     # Logging parameters
-    parser.add_argument('--log_freq', default=1000, type=str)
+    parser.add_argument('--log_freq', default=10, type=str)
     parser.add_argument('--save_freq', default=500, type=int)    
     parser.add_argument('--eval_freq', default=10, type=int)
     
@@ -73,7 +74,7 @@ def parse_args():
     
     # Directories & Checkpoint
     # parser.add_argument('--load_checkpoint', default=None, type=str)            
-    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_rgb_pretraining/checkpoint_10000.pth', type=str)            
+    parser.add_argument('--load_checkpoint', default='./checkpoints/pix2vox/r2n2_sketch_pretraining/checkpoint_10000.pth', type=str)            
     parser.add_argument('--checkpoint_dir', type=str, default='./checkpoints')
     parser.add_argument('--logs_dir', type=str, default='./logs')
     parser.add_argument('--debug_dir', type=str, default='./debug_output')
@@ -97,7 +98,7 @@ def calculate_voxel_loss(voxel_src, voxel_tgt):
     
     return loss
 
-def save_as_mesh(prediction_3d, save_name, cubify_thresh=0.5):
+def save_as_mesh(prediction_3d, save_name, cubify_thresh=0.3):
     mesh = cubify(prediction_3d, thresh=cubify_thresh)
     save_obj(f"{save_name}.obj", verts=mesh.verts_list()[0], faces=mesh.faces_list()[0])
     
@@ -116,7 +117,8 @@ def main(args):
     if args.debug:
         args.debug_dir = os.path.join(args.debug_dir, dt)
         create_dir(args.debug_dir)
-    writer = SummaryWriter(os.path.join(args.logs_dir, dt))
+    else:
+        writer = SummaryWriter(os.path.join(args.logs_dir, dt))
     
     ## Load model & optimizer
     if args.model == 'pix2vox':
@@ -186,7 +188,8 @@ def main(args):
         metadata_path = f"{args.r2n2_dir}/line_metadata.json"
         
         dataset = R2N2(shapenet_path, r2n2_path, metadata_path,
-                       views_rel_path="ShapeNetRendering", voxels_rel_path="ShapeNetVoxels")
+                       views_rel_path="Sketches", voxels_rel_path="ShapeNetVoxels")
+                    #    views_rel_path="ShapeNetRendering", voxels_rel_path="ShapeNetVoxels")
                     #    views_rel_path="LineDrawings", voxels_rel_path="ShapeNetVoxels")
     else:
         dataset = IKEAManualStep(args)
@@ -240,8 +243,8 @@ def main(args):
         
         if args.debug and step % len(train_loader) == 0:
             for i, name in enumerate(names):
-                save_as_mesh(prediction_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}")
-                save_as_mesh(ground_truth_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}_gt")
+                save_as_mesh(prediction_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}", args.cubify_ths)
+                save_as_mesh(ground_truth_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}_gt", args.cubify_ths)
                 cv2.imwrite(f"{args.debug_dir}/{step}_{name.item()}_gt.png", images_gt[i].permute(1,2,0).cpu().numpy())
                 break
         
@@ -288,7 +291,7 @@ def main(args):
                             save_as_mesh(prediction_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}")
                             save_as_mesh(ground_truth_3d[i].unsqueeze(0), f"{args.debug_dir}/{step}_{name.item()}_gt")
                             cv2.imwrite(f"{args.debug_dir}/{step}_{name.item()}_gt.png", images_test[i].permute(0,2,3,1)[0].cpu().numpy())
-                    
+                        
                     if predictions is None:
                         predictions = prediction_3d
                         image_names = image_test_names
@@ -305,10 +308,16 @@ def main(args):
                 writer.add_scalar("eval_loss", total_loss, step)
                 
                 if args.r2n2:
-                    with open(os.path.join(args.out_dir, "test_samples.json"), "w") as f:
-                        json.dump(test_set.dataset.name_dic, indent=4)
+                    obj_names = []
+                    for obj_num in image_names:
+                        obj_names.append(f"{test_set.dataset.name_dic[obj_num.item()]}_{obj_num.item()%15}")
+                    with open(os.path.join(args.out_dir, "test_samples.txt"), "a") as f:
+                        for objname in obj_names:
+                            f.write(str(objname) + '\n')
+                    # with open(os.path.join(args.out_dir, "test_samples.json"), "a") as f:
+                    #     json.dump(test_set.dataset.name_dic.values(), f, indent=4)
                 else:
-                    with open(os.path.join(args.out_dir, "test_samples.txt"), "w") as f:
+                    with open(os.path.join(args.out_dir, "test_samples.txt"), "a") as f:
                         for objname in image_names:
                             f.write(str(objname.item()) + '\n')
                 
