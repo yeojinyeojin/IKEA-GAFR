@@ -4,12 +4,13 @@
 deterministic: False
 random_seed: 36
 
-# training
+# training:
+#   ckpt: "/home/ubuntu/IKEA-GAFR/sketchsampler/pretrained_models/sketchsampler_new.ckpt"
 
 pl_trainer:
   fast_dev_run: False # Enable this for debug purposes
-  gpus: [ 0,1,2,3,4,5,6,7 ]
-  accelerator: 'ddp'
+  gpus: [0]
+  # accelerator: 'ddp'
   auto_select_gpus: True
   precision: 32
   max_epochs: 30
