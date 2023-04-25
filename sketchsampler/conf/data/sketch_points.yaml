@@ -5,7 +5,7 @@ datamodule:
 
   datasets:
     train:
-      _target_: data.sketch_points.dataset.DataSet
+      _target_: data.sketch_points.dataset.CustomDataSet
       name: SketchShapeNet_TRAIN
       path_sketch: ${env:SKETCH_PATH}
       path_pt: ${env:SHAPENET_PT_PATH}
