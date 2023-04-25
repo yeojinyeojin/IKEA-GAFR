@@ -147,9 +147,9 @@ class SketchSampler(pl.LightningModule):
         self.save_hyperparameters()
 
         self.depth_head = init_net(DepthHead())
-        self.density_head = init_net(DensityHead())
+        self.density_head = init_net(IkeaDensityHead(seg_classes=16))  # todo
         self.sketch_translator = SketchTranslator()
-        self.map_sampler = MapSampler()
+        self.map_sampler = IkeaMapSampler()  # todo
 
         self.n_points = self.cfg.train.n_points
         self.lambda1 = self.cfg.train.lambda1
@@ -257,3 +257,60 @@ class SketchSampler(pl.LightningModule):
             return [opt], scheduler
 
         return opt
+
+
+class IkeaDensityHead(nn.Module):
+    def __init__(self, seg_classes):
+        super().__init__()
+        self.block1 = UnitBlock(512 + 256 + 128 + 64, 256)
+        self.conv = nn.Conv2d(256, 64, kernel_size=3, stride=1, padding=1)
+        self.relu = nn.ReLU(True)
+        self.block2 = UnitBlock(64, seg_classes)
+
+    def forward(self, features):
+        _, _, h_out, w_out = features[-1].shape
+        for i in range(len(features) - 1):
+            features[i] = F.interpolate(features[i], (h_out, w_out))
+        input_feature = torch.cat(features, dim=1)
+        m = self.block1(input_feature)
+        m = self.relu(self.conv(m))
+        m = self.block2(m)
+        breakpoint()  # fixme
+        m = m / torch.sum(m, dim=(2, 3), keepdim=True)
+        return m
+
+
+class IkeaMapSampler(nn.Module):
+    def __init__(self, mode='stable', seg_classes=16):
+        super().__init__()
+        self.mode = mode
+        self.seg_encoding = nn.Embedding(num_embeddings=seg_classes, embedding_dim=128)  # todo: embedding_dim = xy.shape[0]
+        assert self.mode in ['stable', 'normal']
+
+    def forward(self, density_map, pt_count):
+        if self.mode == 'stable':
+            return self.sample_stable(density_map, pt_count)
+        elif self.mode == 'normal':
+            return self.sample_normal(density_map, pt_count)
+        else:
+            raise NotImplementedError
+
+    def sample_stable(self, density_map, pt_count):
+        breakpoint()  # fixme
+        density_map = density_map * pt_count
+        H, W = density_map.shape[-2:]
+        density_map = torch.round(density_map).long()
+        points = [torch.where(img[0] >= 1 - 1e-3) for img in density_map]
+        density = [b_map[0][b_point] for b_map, b_point in zip(density_map, points)]
+        aux_norm = torch.tensor([(W - 1), (H - 1)], device=density_map.device).view(1, 2)
+        pointclouds_normed = [torch.stack(point, dim=-1).flip(-1).float() * 2 / aux_norm - 1
+                              for point in points]
+        xys = [torch.repeat_interleave(pointcloud_normed, b_density, dim=0) for pointcloud_normed, b_density in
+               zip(pointclouds_normed, density)]
+
+        # random_prior = [torch.rand(size=(xy.shape[0], 1), device=density_map.device) for xy in xys]
+        seg_prior = [self.seg_encoding(xy) for xy in xys]  # fixme
+        return xys, seg_prior
+
+    def sample_normal(self, density_map, pt_count):
+        raise NotImplementedError
