@@ -62,7 +62,7 @@ class DataSet(Dataset):
     
 class CustomDataSet(Dataset):
     def __init__(self, name: ValueNode, path_sketch: str, path_pt: str, path_camera: str,
-                 path_density_seg: str, file_list: str, cfg: DictConfig, **kwargs):
+                 path_density: str, file_list: str, cfg: DictConfig, **kwargs):
         super().__init__()
         self.cfg = cfg
         self.name = name
@@ -70,7 +70,7 @@ class CustomDataSet(Dataset):
         self.path_sketch = path_sketch
         self.path_pt = path_pt
         self.path_camera = path_camera
-        self.path_density_seg = path_density_seg
+        self.path_density_seg = path_density
         self.pkl_list = []
         with open(file_list, 'r') as f:
             while (True):
