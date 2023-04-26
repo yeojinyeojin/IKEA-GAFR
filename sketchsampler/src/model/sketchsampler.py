@@ -432,7 +432,7 @@ class IkeaDepthHead(nn.Module):
         self.z_decode3 = ResMLP(32, 16, norm_layer=get_norm_layer('instance1D'),
                                 activation=nn.ReLU())
         
-        self.gen_z = nn.Linear(16, 1)
+        self.gen_z = nn.Linear(16, 3)
         self.c_decode = nn.Sequential(
             nn.Linear(in_features=32, out_features=32),
             nn.ReLU(),
@@ -475,7 +475,8 @@ class IkeaDepthHead(nn.Module):
             
             c_i = self.c_decode(z_i)
             
-            pointclouds.append(self.unproj(wh_i.squeeze(0), z_i_pred.squeeze(0)))
+            # pointclouds.append(self.unproj(wh_i.squeeze(0), z_i_pred.squeeze(0)))
+            pointclouds.append(z_i_pred.squeeze(0))
             pointcloud_labels.append(c_i.squeeze(0))
             
         return pointclouds, pointcloud_labels
