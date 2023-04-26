@@ -195,12 +195,12 @@ class SketchSampler(pl.LightningModule):
         return predicted_map, predicted_points, predicted_clss
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
-        sketch, pointclouds, density_map, cls_labels = batch
+        sketch, pointclouds, density_map, metadata = batch
         predicted_map, predicted_points, predicted_clss = self(sketch, density_map, use_predicted_map=False)
         
         points_loss = self.train_metric.loss_points(predicted_points, pointclouds)
         density_loss = self.train_metric.loss_density(predicted_map, density_map)
-        seg_loss = self.train_metric.loss_segmentation(predicted_points, pointclouds, predicted_clss, cls_labels)
+        seg_loss = self.train_metric.loss_segmentation(predicted_points, pointclouds, predicted_clss, metadata)
 
         train_loss = self.lambda1 * points_loss + self.lambda2 * density_loss + self.lambda3 * seg_loss
         
@@ -217,19 +217,17 @@ class SketchSampler(pl.LightningModule):
         return train_loss
 
     def validation_step(self, batch: Any, batch_idx: int):
-        sketch, pointclouds, density_map, cls_labels = batch
+        sketch, pointclouds, density_map, metadata = batch
         predicted_map, predicted_points, predicted_clss = self(sketch, density_map, use_predicted_map=True)
         
-        # fixme: rewrite chamfer_and_f1 func without metas vars
-        # self.val_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata)
+        self.val_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata, m_name=f"model_{batch_idx}")
         return
 
     def test_step(self, batch: Any, batch_idx: int):
-        sketch, pointclouds, density_map, cls_labels = batch
+        sketch, pointclouds, density_map, metadata = batch
         predicted_map, predicted_points, predicted_clss = self(sketch, density_map, use_predicted_map=True)
         
-        # fixme: rewrite chamfer_and_f1 func without metas vars
-        # self.test_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata)
+        self.test_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata, m_name=f"model_{batch_idx}")
         
         output_dir = "/home/niviru/Desktop/FinalProject/IKEA/sketchsampler/outputs/"
         sketch_dir = output_dir + "/sketches"
@@ -335,7 +333,8 @@ class IkeaDensityHead(nn.Module):
         m = self.block1(input_feature)
         m = self.relu(self.conv(m))
         m = self.block2(m)  # [4, 24, 256, 256]
-
+        m = m + 1e-12
+        
         # exp: can predict self.block2 = UnitBlock(64, seg_classes + 1) instead
         total_m = torch.sum(m, dim=1, keepdim=True)
         total_m = total_m / torch.sum(total_m, dim=(2, 3), keepdim=True)  # [4, 1, 256, 256]
@@ -344,6 +343,9 @@ class IkeaDensityHead(nn.Module):
         channel_m = m / torch.sum(m, dim=(1), keepdim=True)  # [4, 24, 256, 256]
 
         fused_m = torch.cat((total_m, channel_m), dim=1)  # [4, 25, 256, 256]
+        
+        if fused_m.isnan().sum() or fused_m.isinf().sum():
+            raise ValueError("NANs or INFs found in fused density map")
         return fused_m
 
 

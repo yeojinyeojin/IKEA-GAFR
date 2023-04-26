@@ -199,7 +199,8 @@ class CustomDataSet2(Dataset):
         sketch = ((np.transpose(rgb2gray(sketch[:, :, :3]), (2, 0, 1)) - .5) * 2).astype('float32')
         # metadata = self.pkl_list[idx][:-4]
 
-        item = (sketch, gt_pointcloud, seg_density_map, label)
+        metadata = (idx, label)
+        item = (sketch, gt_pointcloud, seg_density_map, metadata)
         # item = (sketch, gt_pointcloud, seg_density_map, metadata)
         return item
 
