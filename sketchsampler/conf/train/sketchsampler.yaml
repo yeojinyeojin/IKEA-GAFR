@@ -4,8 +4,10 @@
 deterministic: False
 random_seed: 36
 
-# training:
-#   ckpt: "/home/ubuntu/IKEA-GAFR/sketchsampler/pretrained_models/sketchsampler_new.ckpt"
+training:
+  ckpt: "/home/ubuntu/IKEA-GAFR/sketchsampler/pretrained_models/sketchsampler.ckpt"
+
+vis_out_path: "/home/ubuntu/IKEA-GAFR/sketchsampler/vis_out"
 
 pl_trainer:
   fast_dev_run: False # Enable this for debug purposes

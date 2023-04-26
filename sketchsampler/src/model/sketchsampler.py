@@ -1,5 +1,8 @@
 from typing import Any, List, Sequence, Tuple, Union
 
+import os
+import pickle as pkl
+import numpy as np
 import hydra
 import pytorch_lightning as pl
 import torch
@@ -32,7 +35,7 @@ class DensityHead(nn.Module):
         super().__init__()
         self.block1 = UnitBlock(512 + 256 + 128 + 64, 256)
         self.conv = nn.Conv2d(256, 64, kernel_size=3, stride=1, padding=1)
-        self.relu = nn.ReLU(True)
+        self.relu = nn.ReLU(inplace=False)
         self.block2 = UnitBlock(64, 1)
 
     def forward(self, features):
@@ -147,7 +150,7 @@ class SketchSampler(pl.LightningModule):
         self.save_hyperparameters()
 
         self.seg_classes = 24
-        
+
         self.depth_head = init_net(IkeaDepthHead())
         self.density_head = init_net(IkeaDensityHead(seg_classes=self.seg_classes))
         self.sketch_translator = SketchTranslator()
@@ -168,6 +171,10 @@ class SketchSampler(pl.LightningModule):
         'training_step', 'validation_step' and 'test_step' should call
         this method in order to compute the output predictions and the loss.
         """
+        # for name, param in self.named_parameters():
+        #     if param.requires_grad:
+        #         print(name, param.data.shape)
+
         features = self.sketch_translator(sketch)
         predicted_map = self.density_head(features)
 
@@ -182,8 +189,11 @@ class SketchSampler(pl.LightningModule):
         sketch, pointclouds, density_map, metadata = batch
         predicted_map, predicted_points = self(sketch, density_map, use_predicted_map=False)
         points_loss = self.train_metric.loss_points(predicted_points, pointclouds)
+        # print(torch.isnan(predicted_map).sum(), torch.isnan(density_map).sum())
+        
         density_loss = self.train_metric.loss_density(predicted_map, density_map)
         train_loss = self.lambda1 * points_loss + self.lambda2 * density_loss
+        # print('******', points_loss, density_loss, train_loss)
         self.log_dict(
             {"train_loss": train_loss,
              "density_loss": density_loss,
@@ -197,13 +207,33 @@ class SketchSampler(pl.LightningModule):
     def validation_step(self, batch: Any, batch_idx: int):
         sketch, pointclouds, density_map, metadata = batch
         predicted_map, predicted_points = self(sketch, density_map, use_predicted_map=True)
-        self.val_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata)
+        # fixme: rewrite chamfer_and_f1 func without metas vars
+        # self.val_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata)
         return
 
     def test_step(self, batch: Any, batch_idx: int):
         sketch, pointclouds, density_map, metadata = batch
         predicted_map, predicted_points = self(sketch, density_map, use_predicted_map=True)
-        self.test_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata)
+        # fixme: rewrite chamfer_and_f1 func without metas vars
+        # self.test_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata)
+        """
+        for i in range(len(metadata)):
+            np_pred_pc = predicted_points[i].detach().cpu().numpy()
+            # np_pred_pc = to_numpy(predicted_points[i])
+            meta = metadata[i]
+            cls, obj, view_num = meta.split('/')
+            targetPath = os.path.join(self.cfg.train.vis_out_path, 'point_cloud', cls, obj)
+            if not os.path.exists(targetPath):
+                os.makedirs(targetPath)
+            save_path = os.path.join(targetPath, view_num + ".obj")
+            pkl.dump(np_pred_pc, open(save_path, 'wb'))
+            targetPath = os.path.join(self.cfg.train.vis_out_path, 'density_map', cls, obj)
+            if not os.path.exists(targetPath):
+                os.makedirs(targetPath)
+            save_path = os.path.join(targetPath, view_num + ".dat")
+            pkl.dump(density_map[i].detach().cpu().numpy(), open(save_path, 'wb'))
+            # pkl.dump(to_numpy(density_map[i]), open(save_path, 'wb'))
+        """
         return
 
     def validation_epoch_end(self, outputs: List[Any]) -> None:
@@ -266,7 +296,7 @@ class IkeaDensityHead(nn.Module):
         super().__init__()
         self.block1 = UnitBlock(512 + 256 + 128 + 64, 256)
         self.conv = nn.Conv2d(256, 64, kernel_size=3, stride=1, padding=1)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU(inplace=False)
         self.block2 = UnitBlock(64, seg_classes)
 
     def forward(self, features):
@@ -281,10 +311,10 @@ class IkeaDensityHead(nn.Module):
         # exp: can predict self.block2 = UnitBlock(64, seg_classes + 1) instead
         total_m = torch.sum(m, dim=1, keepdim=True)
         total_m = total_m / torch.sum(total_m, dim=(2, 3), keepdim=True)  # [4, 1, 256, 256]
-
+        
         # normalized across channels
         channel_m = m / torch.sum(m, dim=(1), keepdim=True)  # [4, 24, 256, 256]
-        
+
         fused_m = torch.cat((total_m, channel_m), dim=1)  # [4, 25, 256, 256]
         return fused_m
 
@@ -293,7 +323,7 @@ class IkeaMapSampler(nn.Module):
     def __init__(self, mode='stable', seg_classes=16, emb_dim=32):
         super().__init__()
         self.mode = mode
-        
+
         self.seg_classes = seg_classes
         self.emb_dim = emb_dim
         self.seg_encoding = nn.Embedding(num_embeddings=seg_classes, embedding_dim=emb_dim)
@@ -314,8 +344,8 @@ class IkeaMapSampler(nn.Module):
 
         points = [torch.where(img[0] >= 1 - 1e-3) for img in density_map]
         density = [b_map[0][b_point] for b_map, b_point in zip(density_map, points)]
-        aux_norm = torch.tensor([(W - 1), (H - 1)], device=density_map.device).view(1, 2)
-        
+        aux_norm = torch.tensor([(W - 1), (H - 1)], device=density_map.device)
+
         # flip because we need XYs and not YXs and normalize for zero-centering
         pointclouds_normed = [torch.stack(point, dim=-1).flip(-1).float() * 2 / aux_norm - 1
                               for point in points]
@@ -323,17 +353,18 @@ class IkeaMapSampler(nn.Module):
                zip(pointclouds_normed, density)]
 
         # todo: more efficient vectorized way for this instead of wrapper subroutine using torch.gather
-        seg_priors = [self._get_seg_prior(b_fused_map[1:], torch.stack(b_point, dim=-1), b_density) 
-                        for b_fused_map, b_point, b_density in zip(fused_density_map, points, density)]
+        seg_priors = [self._get_seg_prior(b_fused_map[1:], torch.stack(b_point, dim=-1), b_density)
+                      for b_fused_map, b_point, b_density in zip(fused_density_map, points, density)]
         return xys, seg_priors
 
     def _get_seg_prior(self, channel_map, points, density):
-        
-        seg_prior = torch.zeros(size=(density.sum(), self.emb_dim))
+
+        seg_prior = torch.empty(size=(density.sum(), self.emb_dim), device=channel_map.device)
         _start = 0
         for pt, c_num_pts in zip(points, density):
             channel_probs = channel_map[:, pt[0], pt[1]]
             samples = torch.multinomial(input=channel_probs, num_samples=c_num_pts, replacement=True)
+            # samples = torch.tensor([0] * c_num_pts, device=channel_map.device, dtype=torch.long)
             seg_prior[_start: _start + c_num_pts] = self.seg_encoding(samples)
             _start += c_num_pts
 
@@ -376,7 +407,7 @@ class IkeaDepthHead(nn.Module):
             random_prior_i = random_prior[i].unsqueeze(0)
             z_i = self.z_encode1(random_prior_i)
             z_i = self.z_encode2(z_i)
-            
+
             feats_sampled_i = [F.grid_sample(
                 feat_i, wh_i.unsqueeze(1),
                 mode='bilinear', align_corners=False)[:, :, 0, :] \
@@ -386,6 +417,6 @@ class IkeaDepthHead(nn.Module):
             z_i = self.z_decode2(z_i)
             z_i = self.z_decode3(z_i)
             z_i = self.gen_z(z_i)
-            z_i -= z_i.mean(dim=1, keepdim=True)
+            z_i = z_i - z_i.mean(dim=1, keepdim=True)
             pointclouds.append(self.unproj(wh_i.squeeze(0), z_i.squeeze(0)))
         return pointclouds
