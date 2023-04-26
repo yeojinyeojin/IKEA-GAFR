@@ -34,3 +34,4 @@ logs/
 checkpoints/
 *.zip
 sketchsampler/experiments/*
+**/*.ckpt

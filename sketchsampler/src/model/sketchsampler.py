@@ -149,13 +149,18 @@ class SketchSampler(pl.LightningModule):
         self.cfg = cfg
         self.save_hyperparameters()
 
+        # hparams
         self.seg_classes = 24
         self.emb_dim = 16
+        self.include_rand_prior = True
         
-        self.depth_head = init_net(IkeaDepthHead(emb_dim=self.emb_dim))
+        self.depth_head = init_net(IkeaDepthHead(include_prior=self.include_rand_prior, 
+                                                 emb_dim=self.emb_dim))
         self.density_head = init_net(IkeaDensityHead(seg_classes=self.seg_classes))
         self.sketch_translator = SketchTranslator()
-        self.map_sampler = IkeaMapSampler(seg_classes=self.seg_classes, emb_dim=self.emb_dim)
+        self.map_sampler = IkeaMapSampler(include_prior=self.include_rand_prior, 
+                                          seg_classes=self.seg_classes, 
+                                          emb_dim=self.emb_dim)
 
         self.n_points = self.cfg.train.n_points
         self.lambda1 = self.cfg.train.lambda1
@@ -321,10 +326,11 @@ class IkeaDensityHead(nn.Module):
 
 
 class IkeaMapSampler(nn.Module):
-    def __init__(self, mode='stable', seg_classes=16, emb_dim=32):
+    def __init__(self, mode='stable', include_prior=False, seg_classes=16, emb_dim=32):
         super().__init__()
         self.mode = mode
 
+        self.include_prior = include_prior
         self.seg_classes = seg_classes
         self.emb_dim = emb_dim
         self.seg_encoding = nn.Embedding(num_embeddings=seg_classes, embedding_dim=emb_dim)
@@ -360,17 +366,19 @@ class IkeaMapSampler(nn.Module):
 
     def _get_seg_prior(self, channel_map, points, density):
         device = channel_map.device
+        final_emb_dim = self.emb_dim + 1 if self.include_prior else self.emb_dim
 
-        seg_prior = torch.empty(size=(density.sum(), self.emb_dim + 1), device=device)
+        seg_prior = torch.empty(size=(density.sum(), final_emb_dim), device=device)
         _start = 0
         for pt, c_num_pts in zip(points, density):
             channel_probs = channel_map[:, pt[0], pt[1]]
             samples = torch.multinomial(input=channel_probs, num_samples=c_num_pts, replacement=True)
             # samples = torch.tensor([0] * c_num_pts, device=channel_map.device, dtype=torch.long)
-            seg_prior[_start: _start + c_num_pts, :-1] = self.seg_encoding(samples)
+            seg_prior[_start: _start + c_num_pts, :self.emb_dim] = self.seg_encoding(samples)
             _start += c_num_pts
 
-        seg_prior[:, -1] = torch.rand(len(seg_prior), device=device)
+        if self.include_prior:
+            seg_prior[:, -1] = torch.rand(len(seg_prior), device=device)
         return seg_prior.to(device)
 
     def sample_normal(self, density_map, pt_count):
@@ -378,9 +386,12 @@ class IkeaMapSampler(nn.Module):
 
 
 class IkeaDepthHead(nn.Module):
-    def __init__(self, emb_dim):
+    def __init__(self, include_prior, emb_dim):
         super().__init__()
-        self.z_encode1 = ResMLP(emb_dim + 1, 32, norm_layer=get_norm_layer('instance1D'),
+        
+        init_dim = emb_dim + 1 if include_prior else emb_dim
+        
+        self.z_encode1 = ResMLP(init_dim, 32, norm_layer=get_norm_layer('instance1D'),
                                 activation=nn.ReLU())
         self.z_encode2 = ResMLP(32, 64, norm_layer=get_norm_layer('instance1D'),
                                 activation=nn.ReLU())
