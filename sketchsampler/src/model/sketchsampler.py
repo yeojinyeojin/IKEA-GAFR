@@ -29,7 +29,7 @@ class SketchTranslator(nn.Module):
         feature4 = self.parameter.model[28:](feature3)
         return [feature1, feature2, feature3, feature4]
 
-
+"""
 class DensityHead(nn.Module):
     def __init__(self):
         super().__init__()
@@ -141,7 +141,7 @@ class DepthHead(nn.Module):
             z_i -= z_i.mean(dim=1, keepdim=True)
             pointclouds.append(self.unproj(wh_i.squeeze(0), z_i.squeeze(0)))
         return pointclouds
-
+"""
 
 class SketchSampler(pl.LightningModule):
     def __init__(self, cfg: DictConfig, *args, **kwargs) -> None:
@@ -150,11 +150,12 @@ class SketchSampler(pl.LightningModule):
         self.save_hyperparameters()
 
         self.seg_classes = 24
-
-        self.depth_head = init_net(IkeaDepthHead())
+        self.emb_dim = 16
+        
+        self.depth_head = init_net(IkeaDepthHead(emb_dim=self.emb_dim))
         self.density_head = init_net(IkeaDensityHead(seg_classes=self.seg_classes))
         self.sketch_translator = SketchTranslator()
-        self.map_sampler = IkeaMapSampler(seg_classes=self.seg_classes)
+        self.map_sampler = IkeaMapSampler(seg_classes=self.seg_classes, emb_dim=self.emb_dim)
 
         self.n_points = self.cfg.train.n_points
         self.lambda1 = self.cfg.train.lambda1
@@ -358,26 +359,28 @@ class IkeaMapSampler(nn.Module):
         return xys, seg_priors
 
     def _get_seg_prior(self, channel_map, points, density):
+        device = channel_map.device
 
-        seg_prior = torch.empty(size=(density.sum(), self.emb_dim), device=channel_map.device)
+        seg_prior = torch.empty(size=(density.sum(), self.emb_dim + 1), device=device)
         _start = 0
         for pt, c_num_pts in zip(points, density):
             channel_probs = channel_map[:, pt[0], pt[1]]
             samples = torch.multinomial(input=channel_probs, num_samples=c_num_pts, replacement=True)
             # samples = torch.tensor([0] * c_num_pts, device=channel_map.device, dtype=torch.long)
-            seg_prior[_start: _start + c_num_pts] = self.seg_encoding(samples)
+            seg_prior[_start: _start + c_num_pts, :-1] = self.seg_encoding(samples)
             _start += c_num_pts
 
-        return seg_prior.to(channel_map.device)
+        seg_prior[:, -1] = torch.rand(len(seg_prior), device=device)
+        return seg_prior.to(device)
 
     def sample_normal(self, density_map, pt_count):
         raise NotImplementedError
 
 
 class IkeaDepthHead(nn.Module):
-    def __init__(self):
+    def __init__(self, emb_dim):
         super().__init__()
-        self.z_encode1 = ResMLP(32, 32, norm_layer=get_norm_layer('instance1D'),
+        self.z_encode1 = ResMLP(emb_dim + 1, 32, norm_layer=get_norm_layer('instance1D'),
                                 activation=nn.ReLU())
         self.z_encode2 = ResMLP(32, 64, norm_layer=get_norm_layer('instance1D'),
                                 activation=nn.ReLU())

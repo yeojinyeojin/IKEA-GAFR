@@ -23,7 +23,7 @@ datamodule:
         file_list: ${env:TEST_LIST}
 
     test:
-      - _target_: data.sketch_points.dataset.CustomDataSet
+      - _target_: data.sketch_points.dataset.CustomDataSet2
         name: SketchShapeNet_TEST
         path_sketch: ${env:SKETCH_PATH}
         path_pt: ${env:SHAPENET_PT_PATH}
