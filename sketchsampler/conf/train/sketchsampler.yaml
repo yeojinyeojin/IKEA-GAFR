@@ -36,3 +36,4 @@ n_points: 16384
 lambda1: 1
 lambda2: 1e4  # 1e4
 lambda3: 1
+lambda_seg: 50

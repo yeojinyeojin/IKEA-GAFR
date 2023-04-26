@@ -155,6 +155,7 @@ class SketchSampler(pl.LightningModule):
         self.seg_classes = 24
         self.emb_dim = 16
         self.include_rand_prior = True
+        self.use_seg_density_loss = True
         
         self.depth_head = init_net(IkeaDepthHead(include_prior=self.include_rand_prior, 
                                                  emb_dim=self.emb_dim,
@@ -169,6 +170,7 @@ class SketchSampler(pl.LightningModule):
         self.lambda1 = self.cfg.train.lambda1
         self.lambda2 = self.cfg.train.lambda2
         self.lambda3 = self.cfg.train.lambda3
+        self.lambda_seg = self.cfg.train.lambda_seg
 
         self.class_dict = get_classdict()
         self.train_metric = Metric(self.class_dict, 'train')
@@ -200,10 +202,20 @@ class SketchSampler(pl.LightningModule):
         predicted_map, predicted_points, predicted_clss = self(sketch, density_map, use_predicted_map=False)
         
         points_loss = self.train_metric.loss_points(predicted_points, pointclouds)
-        density_loss = self.train_metric.loss_density(predicted_map, density_map)
         seg_loss = self.train_metric.loss_segmentation(predicted_points, pointclouds, predicted_clss, metadata)
 
-        train_loss = self.lambda1 * points_loss + self.lambda2 * density_loss + self.lambda3 * seg_loss
+        if self.use_seg_density_loss:
+            density_loss = self.train_metric.loss_density(predicted_map[:, 0:1], density_map[:, 0:1])
+            seg_density_loss = self.train_metric.loss_segmented_density(predicted_map[:, 1:], density_map[:, 1:])
+            train_loss = self.lambda1 * points_loss + \
+                            self.lambda2 * density_loss + \
+                            self.lambda_seg * seg_density_loss + \
+                            self.lambda3 * seg_loss
+        else:
+            density_loss = self.train_metric.loss_density(predicted_map, density_map)
+            train_loss = self.lambda1 * points_loss + \
+                            self.lambda2 * density_loss + \
+                            self.lambda3 * seg_loss
         
         # print('******', points_loss, density_loss, seg_loss, train_loss)
         self.log_dict(
@@ -245,7 +257,6 @@ class SketchSampler(pl.LightningModule):
             np.save(os.path.join(pred_pcd_dir, "{}_{}.npy".format(batch_idx, i)), predicted_points[i].cpu().numpy())
             np.save(os.path.join(pred_seg_dir, "{}_{}.npy".format(batch_idx, i)), predicted_clss[i].cpu().numpy())
             # assert 1 == 2
-        
         
         """
         for i in range(len(metadata)):

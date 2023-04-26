@@ -63,6 +63,11 @@ class Metric(nn.Module):
     def loss_density(self, pred_density, gt_density):
         return F.l1_loss(pred_density, gt_density)
 
+    def loss_segmented_density(self, pred_seg_density, gt_seg_density):
+        # return F.hinge_embedding_loss(input=pred_seg_density, target=gt_seg_density)
+        # return F.kl_div(input=pred_seg_density, target=gt_seg_density)
+        return F.binary_cross_entropy(input=pred_seg_density.to(torch.float), target=gt_seg_density.to(torch.float))
+
     def loss_segmentation(self, pred_pts, gt_pts, pred_cls, metadatas):
         # https://arxiv.org/pdf/1810.00461.pdf - page 6 for ref
         batchsize = len(gt_pts)
