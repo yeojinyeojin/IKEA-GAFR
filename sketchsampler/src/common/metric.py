@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from common.chamfer_distance import ChamferDistance
+from pytorch3d.ops import knn_points
 
 
 class Metric(nn.Module):
@@ -11,6 +12,8 @@ class Metric(nn.Module):
         self.class_dict = class_dict
         self.chamfer_dist = ChamferDistance()
         self.prefix = prefix
+        self.seg_criterion = torch.nn.CrossEntropyLoss()
+
         assert self.prefix in ['train', 'val', 'test']
 
         self.reset_state()
@@ -54,6 +57,25 @@ class Metric(nn.Module):
 
     def loss_density(self, pred_density, gt_density):
         return F.l1_loss(pred_density, gt_density)
+
+    def loss_segmentation(self, pred_pts, gt_pts, pred_cls, gt_cls):
+        # https://arxiv.org/pdf/1810.00461.pdf - page 6 for ref
+        batchsize = len(gt_pts)
+        seg_list = []
+        for pred_pt, gt_pt, pred_cl, gt_cl in zip(pred_pts, gt_pts, pred_cls, gt_cls):
+            fwd_idx = knn_points(gt_pt.unsqueeze(0), pred_pt.unsqueeze(0), K=1)[1].squeeze()
+            bwd_idx = knn_points(pred_pt.unsqueeze(0), gt_pt.unsqueeze(0), K=1)[1].squeeze()
+
+            fwd_tgt = torch.tensor(gt_cl, dtype=torch.long, device=pred_cl.device).squeeze()
+            bwd_tgt = torch.tensor(gt_cl, dtype=torch.long, device=pred_cl.device)[bwd_idx].squeeze()
+            
+            fwd_loss = self.seg_criterion(input=pred_cl[fwd_idx], target=fwd_tgt)
+            bwd_loss = self.seg_criterion(input=pred_cl, target=bwd_tgt)
+
+            seg_loss = (fwd_loss + bwd_loss) / 2
+            seg_list.append(seg_loss)
+        
+        return sum(seg_list) / len(seg_list)
 
     def reset_state(self):
         self.model_number_dict = {i: 0 for i in self.class_dict}

@@ -1,6 +1,7 @@
 from typing import Any, List, Sequence, Tuple, Union
 
 import os
+import cv2
 import pickle as pkl
 import numpy as np
 import hydra
@@ -155,7 +156,8 @@ class SketchSampler(pl.LightningModule):
         self.include_rand_prior = True
         
         self.depth_head = init_net(IkeaDepthHead(include_prior=self.include_rand_prior, 
-                                                 emb_dim=self.emb_dim))
+                                                 emb_dim=self.emb_dim,
+                                                 seg_classes=self.seg_classes))
         self.density_head = init_net(IkeaDensityHead(seg_classes=self.seg_classes))
         self.sketch_translator = SketchTranslator()
         self.map_sampler = IkeaMapSampler(include_prior=self.include_rand_prior, 
@@ -165,6 +167,7 @@ class SketchSampler(pl.LightningModule):
         self.n_points = self.cfg.train.n_points
         self.lambda1 = self.cfg.train.lambda1
         self.lambda2 = self.cfg.train.lambda2
+        self.lambda3 = self.cfg.train.lambda3
 
         self.class_dict = get_classdict()
         self.train_metric = Metric(self.class_dict, 'train')
@@ -188,22 +191,25 @@ class SketchSampler(pl.LightningModule):
             WH, depth_prior = self.map_sampler(predicted_map, self.n_points)
         else:
             WH, depth_prior = self.map_sampler(density_map, self.n_points)
-        predicted_points = self.depth_head(features, WH, depth_prior)
-        return predicted_map, predicted_points
+        predicted_points, predicted_clss = self.depth_head(features, WH, depth_prior)
+        return predicted_map, predicted_points, predicted_clss
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
-        sketch, pointclouds, density_map, metadata = batch
-        predicted_map, predicted_points = self(sketch, density_map, use_predicted_map=False)
-        points_loss = self.train_metric.loss_points(predicted_points, pointclouds)
-        # print(torch.isnan(predicted_map).sum(), torch.isnan(density_map).sum())
+        sketch, pointclouds, density_map, cls_labels = batch
+        predicted_map, predicted_points, predicted_clss = self(sketch, density_map, use_predicted_map=False)
         
+        points_loss = self.train_metric.loss_points(predicted_points, pointclouds)
         density_loss = self.train_metric.loss_density(predicted_map, density_map)
-        train_loss = self.lambda1 * points_loss + self.lambda2 * density_loss
-        # print('******', points_loss, density_loss, train_loss)
+        seg_loss = self.train_metric.loss_segmentation(predicted_points, pointclouds, predicted_clss, cls_labels)
+
+        train_loss = self.lambda1 * points_loss + self.lambda2 * density_loss + self.lambda3 * seg_loss
+        
+        # print('******', points_loss, density_loss, seg_loss, train_loss)
         self.log_dict(
             {"train_loss": train_loss,
              "density_loss": density_loss,
-             "points_loss": points_loss},
+             "points_loss": points_loss,
+             "seg_loss": seg_loss},
             on_step=True,
             on_epoch=True,
             prog_bar=True
@@ -211,17 +217,33 @@ class SketchSampler(pl.LightningModule):
         return train_loss
 
     def validation_step(self, batch: Any, batch_idx: int):
-        sketch, pointclouds, density_map, metadata = batch
-        predicted_map, predicted_points = self(sketch, density_map, use_predicted_map=True)
+        sketch, pointclouds, density_map, cls_labels = batch
+        predicted_map, predicted_points, predicted_clss = self(sketch, density_map, use_predicted_map=True)
+        
         # fixme: rewrite chamfer_and_f1 func without metas vars
         # self.val_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata)
         return
 
     def test_step(self, batch: Any, batch_idx: int):
-        sketch, pointclouds, density_map, metadata = batch
-        predicted_map, predicted_points = self(sketch, density_map, use_predicted_map=True)
+        sketch, pointclouds, density_map, cls_labels = batch
+        predicted_map, predicted_points, predicted_clss = self(sketch, density_map, use_predicted_map=True)
+        
         # fixme: rewrite chamfer_and_f1 func without metas vars
         # self.test_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata)
+        
+        output_dir = "/home/niviru/Desktop/FinalProject/IKEA/sketchsampler/outputs/"
+        sketch_dir = output_dir + "/sketches"
+        gt_pcd_dir = output_dir + "/gt_pcds"
+        pred_pcd_dir = output_dir + "/predicted_pcds"
+        print("......WRITING MODELS......")
+        for i,s in enumerate(sketch):
+            cv2.imwrite(os.path.join(sketch_dir, "{}_{}.png".format(batch_idx, i)), np.uint8(s.cpu().numpy().squeeze()*255))
+            #cv2.imwrite(os.path.join(sketch_dir, "{}_{}.png".format(batch_idx, i)), np.uint8(s.cpu().numpy().squeeze()))
+            np.save(os.path.join(gt_pcd_dir, "{}_{}.npy".format(batch_idx, i)), pointclouds[i].cpu().numpy())
+            np.save(os.path.join(pred_pcd_dir, "{}_{}.npy".format(batch_idx, i)), predicted_points[i].cpu().numpy())
+            # assert 1 == 2
+        
+        
         """
         for i in range(len(metadata)):
             np_pred_pc = predicted_points[i].detach().cpu().numpy()
@@ -386,7 +408,7 @@ class IkeaMapSampler(nn.Module):
 
 
 class IkeaDepthHead(nn.Module):
-    def __init__(self, include_prior, emb_dim):
+    def __init__(self, include_prior, emb_dim, seg_classes):
         super().__init__()
         
         init_dim = emb_dim + 1 if include_prior else emb_dim
@@ -402,8 +424,16 @@ class IkeaDepthHead(nn.Module):
                                 activation=nn.ReLU())
         self.z_decode3 = ResMLP(32, 16, norm_layer=get_norm_layer('instance1D'),
                                 activation=nn.ReLU())
+        
         self.gen_z = nn.Linear(16, 1)
-
+        self.c_decode = nn.Sequential(
+            nn.Linear(in_features=32, out_features=32),
+            nn.ReLU(),
+            nn.Linear(in_features=32, out_features=32),
+            nn.ReLU(),
+            nn.Linear(in_features=32, out_features=seg_classes),
+        )
+        
     def unproj(self, WH, Z):
         w, h = WH.T
         z = Z.squeeze(1)
@@ -414,6 +444,8 @@ class IkeaDepthHead(nn.Module):
 
     def forward(self, features, WH, random_prior):
         batchsize = features[0].shape[0]
+        
+        pointcloud_labels = []
         pointclouds = []
         for i in range(batchsize):
             feats_i = [feat[i].unsqueeze(0) for feat in features]
@@ -429,8 +461,14 @@ class IkeaDepthHead(nn.Module):
             feats_i = torch.cat(feats_sampled_i, dim=-1)
             z_i = self.z_decode1(torch.cat([feats_i, z_i], dim=-1))
             z_i = self.z_decode2(z_i)
-            z_i = self.z_decode3(z_i)
-            z_i = self.gen_z(z_i)
-            z_i = z_i - z_i.mean(dim=1, keepdim=True)
-            pointclouds.append(self.unproj(wh_i.squeeze(0), z_i.squeeze(0)))
-        return pointclouds
+
+            z_i_pred = self.z_decode3(z_i)
+            z_i_pred = self.gen_z(z_i_pred)
+            z_i_pred = z_i_pred - z_i_pred.mean(dim=1, keepdim=True)
+            
+            c_i = self.c_decode(z_i)
+            
+            pointclouds.append(self.unproj(wh_i.squeeze(0), z_i_pred.squeeze(0)))
+            pointcloud_labels.append(c_i.squeeze(0))
+            
+        return pointclouds, pointcloud_labels
