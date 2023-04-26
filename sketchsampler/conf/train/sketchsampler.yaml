@@ -33,4 +33,5 @@ model_checkpoints:
 
 n_points: 16384
 lambda1: 1
-lambda2: 2e1  # 1e4
+lambda2: 50  # 1e4
+lambda3: 1
