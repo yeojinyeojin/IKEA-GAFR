@@ -142,7 +142,7 @@ class CustomDataSet2(Dataset):
         # breakpoint()
 
     def __len__(self):
-        return len(os.listdir(self.path_pt))
+        return len(os.listdir(self.path_density_seg))
 
     def __getitem__(self, idx):
         # breakpoint()
