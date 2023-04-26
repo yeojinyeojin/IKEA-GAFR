@@ -151,6 +151,7 @@ class SketchSampler(pl.LightningModule):
         self.save_hyperparameters()
 
         # hparams
+        self.log_metric = True
         self.seg_classes = 24
         self.emb_dim = 16
         self.include_rand_prior = True
@@ -220,25 +221,29 @@ class SketchSampler(pl.LightningModule):
         sketch, pointclouds, density_map, metadata = batch
         predicted_map, predicted_points, predicted_clss = self(sketch, density_map, use_predicted_map=True)
         
-        self.val_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata, m_name=f"model_{batch_idx}")
+        if self.log_metric:
+            self.val_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata, m_name=f"model_{batch_idx}")
         return
 
     def test_step(self, batch: Any, batch_idx: int):
         sketch, pointclouds, density_map, metadata = batch
         predicted_map, predicted_points, predicted_clss = self(sketch, density_map, use_predicted_map=True)
         
-        self.test_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata, m_name=f"model_{batch_idx}")
+        if self.log_metric:
+            self.test_metric.evaluate_chamfer_and_f1(predicted_points, pointclouds, metadata, m_name=f"model_{batch_idx}")
         
-        output_dir = "/home/niviru/Desktop/FinalProject/IKEA/sketchsampler/outputs/"
+        output_dir = "/home/niviru/Desktop/FinalProject/IKEA/sketchsampler/outputs_trained_30_epochs/"
         sketch_dir = output_dir + "/sketches"
         gt_pcd_dir = output_dir + "/gt_pcds"
         pred_pcd_dir = output_dir + "/predicted_pcds"
+        pred_seg_dir = output_dir + '/predicted_seg_labels'
         print("......WRITING MODELS......")
         for i,s in enumerate(sketch):
             cv2.imwrite(os.path.join(sketch_dir, "{}_{}.png".format(batch_idx, i)), np.uint8(s.cpu().numpy().squeeze()*255))
             #cv2.imwrite(os.path.join(sketch_dir, "{}_{}.png".format(batch_idx, i)), np.uint8(s.cpu().numpy().squeeze()))
             np.save(os.path.join(gt_pcd_dir, "{}_{}.npy".format(batch_idx, i)), pointclouds[i].cpu().numpy())
             np.save(os.path.join(pred_pcd_dir, "{}_{}.npy".format(batch_idx, i)), predicted_points[i].cpu().numpy())
+            np.save(os.path.join(pred_seg_dir, "{}_{}.npy".format(batch_idx, i)), predicted_clss[i].cpu().numpy())
             # assert 1 == 2
         
         
@@ -344,8 +349,8 @@ class IkeaDensityHead(nn.Module):
 
         fused_m = torch.cat((total_m, channel_m), dim=1)  # [4, 25, 256, 256]
         
-        if fused_m.isnan().sum() or fused_m.isinf().sum():
-            raise ValueError("NANs or INFs found in fused density map")
+        if torch.isnan(fused_m).sum() or torch.isinf(fused_m).sum():
+            raise ValueError(f"NAN SUM {torch.isnan(fused_m).sum()}, INF SUM {torch.isinf(fused_m).sum()}")
         return fused_m
 
 

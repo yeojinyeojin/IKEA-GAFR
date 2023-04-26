@@ -5,7 +5,8 @@ deterministic: False
 random_seed: 36
 
 training:
-  ckpt: "/home/ubuntu/IKEA-GAFR/sketchsampler/pretrained_models/sketchsampler.ckpt"
+  # ckpt: "/home/ubuntu/IKEA-GAFR/sketchsampler/pretrained_models/sketchsampler.ckpt"
+  ckpt: "/home/niviru/Desktop/FinalProject/IKEA/sketchsampler/"
 
 vis_out_path: "/home/ubuntu/IKEA-GAFR/sketchsampler/vis_out"
 
@@ -15,23 +16,23 @@ pl_trainer:
   # accelerator: 'ddp'
   auto_select_gpus: True
   precision: 32
-  max_epochs: 30
+  max_epochs: 300
   min_epochs: 30
   accumulate_grad_batches: 1
   num_sanity_val_steps: 2
   terminate_on_nan: True
   gradient_clip_val: 10.0
 
-monitor_metric: 'val_loss'
+monitor_metric: 'train_loss'
 monitor_metric_mode: 'min'
 
-early_stopping:
-  patience: 56
+# early_stopping:
+#   patience: 56
 
 model_checkpoints:
   save_top_k: 2
 
 n_points: 16384
 lambda1: 1
-lambda2: 50  # 1e4
+lambda2: 1e4  # 1e4
 lambda3: 1
