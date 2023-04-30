@@ -68,9 +68,15 @@ class DataModule(pl.LightningDataModule):
                 self.datasets.train, cfg=self.cfg
             )
             self.val_datasets = [
-                hydra.utils.instantiate(dataset_cfg, cfg=self.cfg)
-                for dataset_cfg in self.datasets.val
+                self.train_dataset
             ]
+            # self.train_dataset = hydra.utils.instantiate(
+            #     self.datasets.train, cfg=self.cfg
+            # )
+            # self.val_datasets = [
+            #     hydra.utils.instantiate(dataset_cfg, cfg=self.cfg)
+            #     for dataset_cfg in self.datasets.val
+            # ]
 
         if stage is None or stage == "test":
             self.test_datasets = [

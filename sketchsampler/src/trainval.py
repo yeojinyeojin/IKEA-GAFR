@@ -87,7 +87,11 @@ def run(cfg: DictConfig) -> None:
     # Instantiate model
     hydra.utils.log.info(f"Instantiating <{cfg.model._target_}>")
     model: pl.LightningModule = hydra.utils.instantiate(cfg.model, cfg=cfg)
-
+    # modelcls = hydra.utils.get_class(cfg.model._target_)
+    # checkpoint_path = cfg.train.training.ckpt
+    # model = modelcls.load_from_checkpoint(checkpoint_path=checkpoint_path, cfg=cfg, strict=False)
+    # model.freeze()
+    
     # Instantiate the callbacks
     callbacks: List[Callback] = build_callbacks(cfg=cfg)
 
@@ -120,11 +124,12 @@ def run(cfg: DictConfig) -> None:
         **cfg.train.pl_trainer,
     )
 
-    hydra.utils.log.info(f"Starting training!")
+    # hydra.utils.log.info(f"Starting training!")
     trainer.fit(model=model, datamodule=datamodule)
 
     hydra.utils.log.info(f"Starting testing!")
-    trainer.test(model=model, datamodule=datamodule)
+    trainer.test(model=model, datamodule=datamodule, ckpt_path=cfg.train.training.ckpt)
+    # trainer.test(model=model, datamodule=datamodule)
 
     shutil.copytree(".hydra", Path(wandb_logger.experiment.dir) / "hydra")
 

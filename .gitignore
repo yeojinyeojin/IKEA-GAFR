@@ -21,6 +21,9 @@ dataset/off_models
 dataset/gt_off_32_x_32
 dataset/shapenet_rotate_sketch
 dataset/r2n2_sketch
+sketchsampler/dataset
+sketchsampler/*.jpeg
+sketchsampler/dilated
 
 debug_output/
 inference_outputs/
@@ -30,4 +33,5 @@ train_output/
 logs/
 checkpoints/
 *.zip
-
+sketchsampler/experiments/*
+**/*.ckpt

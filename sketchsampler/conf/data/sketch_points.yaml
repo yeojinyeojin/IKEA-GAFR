@@ -5,7 +5,7 @@ datamodule:
 
   datasets:
     train:
-      _target_: data.sketch_points.dataset.CustomDataSet
+      _target_: data.sketch_points.dataset.CustomDataSet2
       name: SketchShapeNet_TRAIN
       path_sketch: ${env:SKETCH_PATH}
       path_pt: ${env:SHAPENET_PT_PATH}
@@ -14,7 +14,7 @@ datamodule:
       file_list: ${env:TRAIN_LIST}
 
     val:
-      - _target_: data.sketch_points.dataset.DataSet
+      - _target_: data.sketch_points.dataset.CustomDataSet2
         name: SketchShapeNet_VAL
         path_sketch: ${env:SKETCH_PATH}
         path_pt: ${env:SHAPENET_PT_PATH}
@@ -23,7 +23,7 @@ datamodule:
         file_list: ${env:TEST_LIST}
 
     test:
-      - _target_: data.sketch_points.dataset.DataSet
+      - _target_: data.sketch_points.dataset.CustomDataSet2
         name: SketchShapeNet_TEST
         path_sketch: ${env:SKETCH_PATH}
         path_pt: ${env:SHAPENET_PT_PATH}
