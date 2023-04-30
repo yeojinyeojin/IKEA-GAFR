@@ -203,6 +203,9 @@ class SketchSampler(pl.LightningModule):
         
         points_loss = self.train_metric.loss_points(predicted_points, pointclouds)
         seg_loss = self.train_metric.loss_segmentation(predicted_points, pointclouds, predicted_clss, metadata)
+        completeness_all = self.train_metric.eval_completeness(predicted_points, pointclouds)
+        accuracy_all = self.train_metric.eval_accuracy(predicted_points, pointclouds)
+        miou_all = self.train_metric.eval_iou(predicted_clss, metadata)
 
         if self.use_seg_density_loss:
             density_loss = self.train_metric.loss_density(predicted_map[:, 0:1], density_map[:, 0:1])

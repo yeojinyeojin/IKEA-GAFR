@@ -86,7 +86,40 @@ class Metric(nn.Module):
             seg_list.append(seg_loss)
         
         return sum(seg_list) / len(seg_list)
+    
+    def eval_completeness(self, pred_pts, gt_pts, radii=[50,25,10]):
+        # https://arxiv.org/pdf/2107.14498.pdf - page 3 for ref
+        batchsize = len(gt_pts)
+        
+        coverage_sum = torch.zeros(len(radii))
+        for pred_pt, gt_pt in zip (pred_pts, gt_pts):
+            _, dist, _, idx = self.chamfer_dist(pred_pt[None, ...], gt_pt[None, ...])
+            
+            for i, r in enumerate(radii):
+                coverage_sum[i] += dist[dist<r].sum() / pred_pt.shape[0]
+        
+        return coverage_sum / batchsize
 
+    def eval_accuracy(self, pred_pts, gt_pts):
+        # https://arxiv.org/pdf/2107.14498.pdf - page 3 for ref
+        return self.loss_points(pred_pts, gt_pts)
+    
+    def eval_iou(self, pred_cls, metadatas, num_parts=24): #TODO: check number of parts
+        gt_cls = metadatas[:,1]
+        batchsize = len(gt_cls)
+        
+        obj_iou = torch.zeros((batchsize, num_parts), dtype=torch.float)
+        for i, gt, pred in enumerate(zip(gt_cls, pred_cls)):
+            part_ious = torch.zeros(num_parts, dtype=torch.float)
+            for l in range(num_parts):
+                if (torch.sum(gt == l) == 0) and (torch.sum(pred == l) == 0): #part is not present, no prediction as well
+                    part_ious[l] = 1.0
+                else:
+                    part_ious[l] = torch.sum((gt == l) & (pred == l)) / float(torch.sum((gt == l) | (pred == l)))
+            obj_iou[i] = part_ious
+            
+        return torch.mean(obj_iou, dim=0)
+                
     def reset_state(self):
         self.model_number_dict = defaultdict(float, {i: 0 for i in self.class_dict})
         self.cd_dict = defaultdict(float, {i: 0 for i in self.class_dict})
