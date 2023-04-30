@@ -39,12 +39,13 @@ def parse_args():
     parser = argparse.ArgumentParser('Image2LineDrawing', add_help=False)
     
     # parser.add_argument('--img_dir', type=str, default='../dataset/shapenet_rotate')
-    # parser.add_argument('--img_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2/ShapeNetRendering/03001627')
-    parser.add_argument('--img_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2')
+    parser.add_argument('--img_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2/ShapeNetRendering/03001627')
+    # parser.add_argument('--img_dir', type=str, default='../dataset/r2n2_shapenet_dataset/r2n2')
     parser.add_argument('--vox_dir', type=str, default='../dataset/r2n2_shapenet_dataset/shapenet')
     # parser.add_argument('--out_dir', type=str, default='../dataset/shapenet_rotate_edge')
     # parser.add_argument('--out_dir', type=str, default='../dataset/r2n2_shapenet_rotate_line')
     parser.add_argument('--out_dir', type=str, default='../dataset/r2n2_shapenet_original_line')
+    # parser.add_argument('--out_dir', type=str, default='./lines')
     
     parser.add_argument('--sobel', action='store_true', default=False)
     parser.add_argument('--rotate', action='store_true', default=False)
@@ -130,7 +131,6 @@ def rotate(datadir, outdir, num_rotate=10, visualize=False):
             cv2.imwrite(f"{outdir}/{obj_name}/x{angle[0]}_y{angle[1]}_z{angle[2]}.png", rend)
             
             if visualize:
-                
                 gt_vox_verts, gt_vox_face_data, _ = load_obj(voxpath)
                 gt_vox_verts += torch.tensor([[1.0, 0.0, 0.0]])
                 gt_textures = torch.ones_like(gt_vox_verts) * torch.tensor([[0.0, 1.0, 0.0]])
@@ -150,6 +150,20 @@ def rotate(datadir, outdir, num_rotate=10, visualize=False):
                 input("Close viz window and press enter to continue to next sample...")
 
     return outdir
+
+def auto_canny(image, sigma=0.33):
+    # compute the median of the single channel pixel intensities
+    # v = np.mean(image)
+    v = np.median(image)
+
+    # apply automatic Canny edge detection using the computed median
+    lower = int(max(0, (1.0 - sigma) * v))
+    upper = int(min(255, (1.0 + sigma) * v))
+    edged = cv2.Canny(image, lower, upper)
+    # print(f"v: {v}, lower: {lower}, upper: {upper}")
+
+    # return the edged image
+    return edged
     
 def get_contour_and_save(imgdir, args):
     dirpaths = glob(f"{imgdir}/*", recursive=True)
@@ -200,6 +214,13 @@ def get_contour_and_save(imgdir, args):
         if args.rotate:
             files = files[:5]
         
+        # files = [
+        #     '/home/ubuntu/IKEA/scripts/08.png',
+        #     '/home/ubuntu/IKEA/dataset/r2n2_shapenet_dataset/r2n2/ShapeNetRendering/03001627/1d9bc60209572861473f10e6caaeca56/rendering/00.png',
+        #     '/home/ubuntu/IKEA/dataset/r2n2_shapenet_dataset/r2n2/ShapeNetRendering/03001627/e04ceec8711a6027a6e27bc066049db5/rendering/04.png',
+        #     '/home/ubuntu/IKEA/dataset/r2n2_shapenet_dataset/r2n2/ShapeNetRendering/03001627/1a6f615e8b1b5ae4dbbc9440457e303e/rendering/01.png',
+        #     '/home/ubuntu/IKEA/dataset/r2n2_shapenet_dataset/r2n2/ShapeNetRendering/03001627/fead8d07aa53de5871c3cf047830ec1f/rendering/00.png',
+        #     ]
         for imgpath in files:
             order = os.path.basename(imgpath)[:-4]
             
@@ -214,10 +235,18 @@ def get_contour_and_save(imgdir, args):
                 
                 cv2.imwrite(os.path.join(obj_outdir, f"{order}_sobel.png"), sobelxy)
             
-            canny = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)
+            # canny = cv2.Canny(image=img_blur, threshold1=15, threshold2=50)
+            canny = auto_canny(img_blur, sigma=0.9)
             canny_inv = cv2.bitwise_not(canny)
             
+            num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(canny, connectivity=8, ltype=cv2.CV_32S)
+            area_list = stats[:, cv2.CC_STAT_AREA]
+            areas = area_list[labels]
+            canny_inv[(areas < 15)] = 255
+            
+            # cv2.imwrite("testing.png", canny_inv)
             cv2.imwrite(os.path.join(obj_outdir, f"{order}.png"), canny_inv)
+            # print()
     print("@@@ skip_cnt: ", skip_cnt)
 
 def main(args):
