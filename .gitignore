@@ -22,6 +22,12 @@ dataset/gt_off_32_x_32
 dataset/shapenet_rotate_sketch
 dataset/r2n2_sketch
 
+## SketchSampler Dataset
+sketchsampler/dataset/density_map
+sketchsampler/dataset/camera
+sketchsampler/dataset/
+**/*.tar.gz
+
 debug_output/
 inference_outputs/
 cad_models/
