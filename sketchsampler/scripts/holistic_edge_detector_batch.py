@@ -3,6 +3,7 @@
 # need to change loading & processing if going down this approach
 
 
+import os
 import cv2
 import getopt
 import numpy
@@ -11,18 +12,39 @@ import PIL.Image
 import sys
 import torch
 import pathlib
+import argparse
+
 
 ##########################################################
 torch.set_grad_enabled(False) # make sure to not compute gradients for computational performance
 torch.backends.cudnn.enabled = True # make sure to use cudnn for computational performance
 
 ##########################################################
+IMG_DIR = "/home/srk/Downloads/pytorch-hed-master/images"
+OUT_DIR = "/home/srk/Downloads/pytorch-hed-master/out_images"
 DO_THRESHOLD = True
-THRESHOLD = 90
+THRESHOLD = 90  # needs more tweaking?
+
+##########################################################
+# DONT CHANGE THESE NIV
 base_width = 480
 height = 320
 arguments_strModel = 'bsds500' # only 'bsds500' for now
 ##########################################################
+
+
+def parse_args():
+
+    parser = argparse.ArgumentParser('Image2LineDrawing', add_help=False)
+
+    parser.add_argument('--img_dir', type=str, default=IMG_DIR)
+    parser.add_argument('--out_dir', type=str, default=OUT_DIR)
+    parser.add_argument('--threshold', type=int, default=THRESHOLD)
+    parser.add_argument('--do_threshold', action='store_true', default=DO_THRESHOLD)
+
+    return parser.parse_args()
+
+
 
 # arguments_strIn = './images/sample.png'
 # arguments_strOut = './out.png'
@@ -147,7 +169,10 @@ def estimate(tenInput):
 ##########################################################
 
 if __name__ == '__main__':
-    img_paths = sorted(list(pathlib.Path("images").glob('*.png')))
+    args = parse_args()
+
+
+    img_paths = sorted(list(pathlib.Path(args.img_dir).glob('*.png')))
 
     for img_path in img_paths:
 
@@ -168,7 +193,7 @@ if __name__ == '__main__':
         tenOutput = PIL.Image.fromarray(
             (tenOutput.clip(0.0, 1.0).numpy().transpose(1, 2, 0)[:, :, 0] * 255.0).astype(numpy.uint8))
         tenOutput = tenOutput.resize((256, 256), PIL.Image.Resampling.LANCZOS)
-        if DO_THRESHOLD:
-            tenOutput = tenOutput.point(lambda p: p > THRESHOLD and 255)
-        tenOutput.save(f'out_{img_path}')
+        if args.do_threshold:
+            tenOutput = tenOutput.point(lambda p: p > args.threshold and 255)
+        tenOutput.save(os.path.join(args.out_dir, img_path.name))
     # end
