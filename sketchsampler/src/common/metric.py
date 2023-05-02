@@ -103,18 +103,22 @@ class Metric(nn.Module):
             _, dist, _, idx = self.chamfer_dist(pred_pt[None, ...], gt_pt[None, ...])
             
             for i, r in enumerate(radii):
-                coverage_sum[i] += (dist<r).sum().item() / gt_pt.shape[0]
+                coverage = (dist<r).sum().item() / gt_pt.shape[0]
+                coverage_sum[i] += coverage
+                self.metric_log[f"completeness_{r}"].append(coverage)
         
-        for i, r in enumerate(radii):
-            self.writer.add_scalar(f'{self.prefix}_completeness_{r}', coverage_sum[i] / batchsize)
+        # for i, r in enumerate(radii):
+        #     self.metric_log[f'completeness_{r}'].append(coverage_sum[i])
+            # self.writer.add_scalar(f'{self.prefix}_completeness_{r}', coverage_sum[i] / batchsize)
         
-        return coverage_sum / batchsize
+        # return coverage_sum / batchsize
 
     def eval_accuracy(self, pred_pts, gt_pts):
         # https://arxiv.org/pdf/2107.14498.pdf - page 3 for ref
         acc = self.loss_points(pred_pts, gt_pts)
-        self.writer.add_scalar(f"{self.prefix}_accuarcy", acc)
-        return acc
+        self.metric_log["accuracy"].append(acc.item())
+        # self.writer.add_scalar(f"{self.prefix}_accuarcy", acc)
+        # return acc
     
     def eval_iou(self, pred_pts, pred_cls, gt_pts, metadatas):
         batchsize = len(pred_cls)
@@ -133,37 +137,30 @@ class Metric(nn.Module):
                 gt_cnt = int(torch.sum(gt_label == l).item())
                 pred_cnt = int(torch.sum(pred_label == l).item())
                 
+                #TODO: handle alignment of labels between gt and prediction (i.e. good prediction but different classes)
+                
                 if gt_cnt == 0 and pred_cnt == 0:
                     part_ious[l] = 1.0
                 else:
-                    #TODO: handle varying number of points between gt and prediction
                     bwd_idx = knn_points(pred_pt.unsqueeze(0), gt_pt.unsqueeze(0), K=1)[1].squeeze()
                     gt_label_sampled = gt_label[bwd_idx].squeeze()
                     
                     part_ious[l] = (((gt_label_sampled == l) & (pred_label == l)).sum() / float(((gt_label_sampled == l) | (pred_label == l)).sum())).item()
-            obj_iou[i] = part_ious
-
-        # for i, ((_, gt), pred) in enumerate(zip(metadatas, pred_cls)):
-        #     part_ious = torch.zeros(num_parts, dtype=torch.float)
-        #     gt = torch.tensor(gt, device=pred.device)
-        #     for l in range(num_parts):
-        #         if ((gt == l).sum().item() == 0) and ((pred == l).sum().item() == 0): #part is not present, no prediction as well
-        #             part_ious[l] = 1.0
-        #         else:
-        #             part_ious[l] = ((gt == l) & (pred == l)).sum() / float(((gt == l) | (pred == l)).sum())
             # obj_iou[i] = part_ious
-        
-        avg_iou = torch.mean(obj_iou, dim=0)
-        self.writer.add_scalar(f"{self.prefix}_miou", torch.mean(obj_iou))
-        for i in range(num_parts):
-            self.writer.add_scalar(f'{self.prefix}_iou_{i}', avg_iou[i])
-        return avg_iou
+            self.metric_log["mean_part_iou"].append(torch.mean(part_ious).item())
+
+        # avg_iou = torch.mean(obj_iou, dim=0)
+        # self.writer.add_scalar(f"{self.prefix}_miou", torch.mean(obj_iou))
+        # for i in range(num_parts):
+        #     self.writer.add_scalar(f'{self.prefix}_iou_{i}', avg_iou[i])
+        # return avg_iou
                 
     def reset_state(self):
         self.model_number_dict = defaultdict(float, {i: 0 for i in self.class_dict})
         self.cd_dict = defaultdict(float, {i: 0 for i in self.class_dict})
         self.f1_tau_dict = defaultdict(float, {i: 0 for i in self.class_dict})
         self.f1_2tau_dict = defaultdict(float, {i: 0 for i in self.class_dict})
+        self.metric_log = defaultdict(list)
 
     def get_dict(self):
         res_dict = {}

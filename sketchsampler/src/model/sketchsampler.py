@@ -203,9 +203,9 @@ class SketchSampler(pl.LightningModule):
         
         points_loss = self.train_metric.loss_points(predicted_points, pointclouds)
         seg_loss = self.train_metric.loss_segmentation(predicted_points, pointclouds, predicted_clss, metadata)
-        # completeness_all = self.train_metric.eval_completeness(predicted_points, pointclouds)
-        # accuracy_all = self.train_metric.eval_accuracy(predicted_points, pointclouds)
-        # miou_all = self.train_metric.eval_iou(predicted_points, predicted_clss, pointclouds, metadata)
+        completeness_all = self.train_metric.eval_completeness(predicted_points, pointclouds)
+        accuracy_all = self.train_metric.eval_accuracy(predicted_points, pointclouds)
+        miou_all = self.train_metric.eval_iou(predicted_points, predicted_clss, pointclouds, metadata)
 
         if self.use_seg_density_loss:
             density_loss = self.train_metric.loss_density(predicted_map[:, 0:1], density_map[:, 0:1])
@@ -290,10 +290,18 @@ class SketchSampler(pl.LightningModule):
 
     def validation_epoch_end(self, outputs: List[Any]) -> None:
         self.log_dict(self.val_metric.get_dict())
+        for k, v in self.val_metric.metric_log.items():
+            v = np.asarray(v)
+            avg_v = np.mean(v)
+            self.val_metric.writer.add_scalar(k, avg_v)
         self.val_metric.reset_state()
 
     def test_epoch_end(self, outputs: List[Any]) -> None:
         self.log_dict(self.test_metric.get_dict())
+        for k, v in self.test_metric.metric_log.items():
+            v = np.asarray(v)
+            avg_v = np.mean(v)
+            self.test_metric.writer.add_scalar(k, avg_v)
         self.test_metric.reset_state()
 
     def num_training_steps(self) -> int:
